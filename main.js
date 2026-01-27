@@ -66,16 +66,24 @@ $(function () {
 
     function toggleWindow(show) {
         if (show === true) {
-            $window.removeClass('hidden');
-            setTimeout(() => $input.trigger('focus'), 0);
+            $window.removeClass('opacity-0 scale-95 pointer-events-none');
+            $window.addClass('opacity-100 scale-100 pointer-events-auto');
+            setTimeout(() => $input.trigger('focus'), 300);
             return;
         }
         if (show === false) {
-            $window.addClass('hidden');
+            $window.removeClass('opacity-100 scale-100 pointer-events-auto');
+            $window.addClass('opacity-0 scale-95 pointer-events-none');
             return;
         }
-        $window.toggleClass('hidden');
-        if (!$window.hasClass('hidden')) setTimeout(() => $input.trigger('focus'), 0);
+        if ($window.hasClass('opacity-0')) {
+            $window.removeClass('opacity-0 scale-95 pointer-events-none');
+            $window.addClass('opacity-100 scale-100 pointer-events-auto');
+            setTimeout(() => $input.trigger('focus'), 300);
+        } else {
+            $window.removeClass('opacity-100 scale-100 pointer-events-auto');
+            $window.addClass('opacity-0 scale-95 pointer-events-none');
+        }
     }
 
     function appendMessage({ text, role }) {
@@ -173,7 +181,6 @@ $(function () {
     // Initialize chat history on page load
     loadChatHistory();
     if (chatHistory.length === 0) {
-        // Add welcome message if no history exists
         appendMessage({ text: 'Hi! How can I help you today?', role: 'assistant' });
     }
 
@@ -203,7 +210,6 @@ $(function () {
     // Toggle handlers
     $fab.on('click', () => toggleWindow());
     $('#chat-close').on('click', () => toggleWindow(false));
-    $('#chat-minimize').on('click', () => toggleWindow(false));
     $('#chat-resize').on('click', () => toggleResize());
     $('#chat-clear').on('click', () => {
         if (confirm('Are you sure you want to clear the chat history?')) {
@@ -223,15 +229,12 @@ $(function () {
         // Show typing while waiting for response
         showTypingIndicator();
 
-        // Send to Gemini API via PHP with chat history for context
+        // Send to n8n webhook via PHP
         $.ajax({
             url: 'api.php',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ 
-                message: text,
-                history: chatHistory
-            }),
+            data: JSON.stringify({ message: text }),
             success: function(response) {
                 hideTypingIndicator();
                 appendMessage({ text: response.response, role: 'assistant' });
