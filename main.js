@@ -5,6 +5,20 @@ $(function () {
     const $input = $('#chat-input');
     const $messages = $('#chat-messages');
 
+    function generateChatId() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        const array = new Uint32Array(32);
+        window.crypto.getRandomValues(array);
+        for (let i = 0; i < 32; i++) {
+            result += chars[array[i] % chars.length];
+        }
+        return result;
+    }
+
+    let chatId = localStorage.getItem('chatId') || generateChatId();
+    localStorage.setItem('chatId', chatId);
+
     // Chat history management with cookies
     const CHAT_COOKIE_NAME = 'chatbot_history';
     let chatHistory = [];
@@ -234,7 +248,7 @@ $(function () {
             url: 'api.php',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ message: text }),
+            data: JSON.stringify({ message: text, chat_id: chatId }),
             success: function(response) {
                 hideTypingIndicator();
                 appendMessage({ text: response.response, role: 'assistant' });
