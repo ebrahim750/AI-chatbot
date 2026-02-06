@@ -133,7 +133,32 @@ $(function () {
         
         // Bullet points * item or - item
         formatted = formatted.replace(/^[\*\-\+]\s+(.*)$/gm, '<div class="flex mb-1"><span class="mr-2">•</span><span>$1</span></div>');
-        
+
+        // Tables
+        formatted = formatted.replace(/(\|.*\|[\r\n]+)(\|[\s\-:|]+\|[\r\n]+)((?:\|.*\|[\r\n]+)+)/g, (match, header, separator, body) => {
+            const headerCells = header.trim().split('|').filter(c => c.trim() !== '');
+            const alignments = separator.trim().split('|').filter(c => c.trim() !== '');
+            const bodyRows = body.trim().split('\n');
+            let html = '<table class="border-collapse border border-slate-200 mb-3"><thead><tr>';
+            headerCells.forEach((cell, i) => {
+                const align = alignments[i]?.includes(':---:') ? 'text-center' : alignments[i]?.includes('---:') ? 'text-right' : 'text-left';
+                html += `<th class="${align} px-3 py-2 border border-slate-200 font-semibold">${cell.trim()}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            bodyRows.forEach(row => {
+                if (row.trim()) {
+                    const cells = row.trim().split('|').filter(c => c.trim() !== '');
+                    html += '<tr>';
+                    cells.forEach((cell, i) => {
+                        const align = alignments[i]?.includes(':---:') ? 'text-center' : alignments[i]?.includes('---:') ? 'text-right' : 'text-left';
+                        html += `<td class="${align} px-3 py-2 border border-slate-200">${cell.trim()}</td>`;
+                    });
+                    html += '</tr>';
+                }
+            });
+            return html + '</tbody></table>';
+        });
+
         // Line breaks (double newline = paragraph break)
         formatted = formatted.replace(/\n\n/g, '</p><p class="mb-2">');
         formatted = '<p class="mb-2">' + formatted + '</p>';
@@ -162,7 +187,7 @@ $(function () {
         const containerClasses = isUser ? 'justify-end' : '';
         
         // Format text based on role
-        const displayText = isUser ? $('<div>').text(text).html() : formatMarkdown(text);
+        const displayText = isUser ? $('<div>').text(text).html().replace(/\n/g, '<br>') : formatMarkdown(text);
         
         const content = `
             <div class="mb-3 flex gap-2 ${containerClasses}">
