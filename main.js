@@ -1,9 +1,84 @@
 $(function () {
+    // Chat widget position configuration: 'left' or 'right'
+    const CHAT_POSITION = 'left';
+    
+    // Chat widget primary color (hex)
+    const CHAT_COLOR = '#000000';
+    
+    // User chat bubble color (hex)
+    const USER_BUBBLE_COLOR = '#000000';
+    
+    // User chat text color (hex)
+    const USER_TEXT_COLOR = '#ffffff';
+    
     const $window = $('#chat-window');
     const $fab = $('#chat-fab');
     const $form = $('#chat-form');
     const $input = $('#chat-input');
     const $messages = $('#chat-messages');
+    
+    // Helper function to convert hex to RGB
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+    
+    // Apply custom color to elements
+    function applyChatColor(color) {
+        const rgb = hexToRgb(color);
+        if (!rgb) return;
+        
+        const rgbString = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+        
+        // FAB button
+        $fab.css('background-color', color);
+        $fab.css('box-shadow', `0 10px 15px -3px rgba(${rgbString}, 0.3)`);
+        $fab.hover(function() {
+            $(this).css('background-color', `rgba(${rgbString}, 0.9)`);
+        }, function() {
+            $(this).css('background-color', color);
+        });
+        
+        // Header
+        $window.find('> div:first-child').css('background-color', color);
+        
+        // Send button
+        $('#chat-send').css('background-color', color);
+        $('#chat-send').hover(function() {
+            $(this).css('background-color', `rgba(${rgbString}, 0.9)`);
+        }, function() {
+            $(this).css('background-color', color);
+        });
+        
+        // Input focus
+        $input.on('focus', function() {
+            $(this).css('border-color', color);
+            $(this).css('box-shadow', `0 0 0 3px rgba(${rgbString}, 0.2)`);
+        });
+        $input.on('blur', function() {
+            $(this).css('border-color', '#e2e8f0');
+            $(this).css('box-shadow', '0 1px 2px 0 rgb(0 0 0 / 0.05)');
+        });
+        
+        // Avatar for assistant messages
+        $(document).on('DOMNodeInserted', function(e) {
+            const $el = $(e.target);
+            $el.find('.bg-indigo-600').css('background-color', color);
+        });
+    }
+    
+    // Apply colors
+    applyChatColor(CHAT_COLOR);
+    
+    // Apply position classes based on configuration
+    if (CHAT_POSITION === 'left') {
+        $fab.removeClass('right-6').addClass('left-6');
+        $window.removeClass('right-6').addClass('left-6');
+    }
 
     function generateChatId() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -160,8 +235,9 @@ $(function () {
             ? '<div class="mt-1 h-7 w-7 flex-shrink-0 rounded-full bg-slate-300 text-slate-700 ring-2 ring-white"><div class="flex h-full w-full items-center justify-center text-xs font-semibold">U</div></div>'
             : '<div class="mt-1 h-7 w-7 flex-shrink-0 rounded-full bg-indigo-600 text-white ring-2 ring-white"><div class="flex h-full w-full items-center justify-center text-xs font-semibold">A</div></div>';
 
+        const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
         const bubbleClasses = isUser
-            ? 'bg-indigo-600 text-white rounded-br-sm'
+            ? 'rounded-br-sm'
             : 'bg-white text-slate-800 ring-1 ring-slate-200 rounded-tl-sm';
 
         const containerClasses = isUser ? 'justify-end' : '';
@@ -172,7 +248,7 @@ $(function () {
         const content = `
             <div class="mb-3 flex gap-2 ${containerClasses}">
                 ${isUser ? '' : avatar}
-                <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}">${displayText}</div>
+                <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}">${displayText}</div>
                 ${isUser ? avatar : ''}
             </div>
         `;
