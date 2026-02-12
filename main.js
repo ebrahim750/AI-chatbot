@@ -232,8 +232,8 @@ $(function () {
         const { text, role } = message;
         const isUser = role === 'user';
         const avatar = isUser
-            ? '<div class="mt-1 h-7 w-7 flex-shrink-0 rounded-full bg-slate-300 text-slate-700 ring-2 ring-white"><div class="flex h-full w-full items-center justify-center text-xs font-semibold">U</div></div>'
-            : '<div class="mt-1 h-7 w-7 flex-shrink-0 rounded-full bg-indigo-600 text-white ring-2 ring-white"><div class="flex h-full w-full items-center justify-center text-xs font-semibold">A</div></div>';
+            ? '<img src="img/user.png" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover">'
+            : '<img src="img/bot.png" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover">';
 
         const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
         const bubbleClasses = isUser
@@ -261,7 +261,7 @@ $(function () {
     function showTypingIndicator() {
         const content = `
             <div class="mb-3 flex gap-2" id="typing-indicator">
-                <div class="mt-1 h-7 w-7 flex-shrink-0 rounded-full bg-indigo-600 text-white ring-2 ring-white"><div class="flex h-full w-full items-center justify-center text-xs font-semibold">A</div></div>
+                <img src="img/bot.png" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover">
                 <div class="max-w-[75%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200 shadow">
                     <span class="typing"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span>
                 </div>
