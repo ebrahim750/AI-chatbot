@@ -43,9 +43,11 @@ $(function () {
     function renderChatHistory() {
         $messages.empty();
         chatHistory.forEach(message => {
-            appendMessageToDOM(message);
+            appendMessageToDOM(message, false);
         });
-        $messages.scrollTop($messages.prop('scrollHeight'));
+        setTimeout(() => {
+            $messages.scrollTop($messages.prop('scrollHeight'));
+        }, 0);
     }
 
     function clearChatHistory() {
@@ -78,14 +80,14 @@ $(function () {
         }
     }
 
-    function appendMessage({ text, role }) {
+    function appendMessage({ text, role, scroll = true }) {
         // Add to chat history
         const message = { text, role, timestamp: Date.now() };
         chatHistory.push(message);
         saveChatHistory();
         
         // Render to DOM
-        appendMessageToDOM(message);
+        appendMessageToDOM(message, scroll);
     }
 
     // Markdown formatting function
@@ -151,7 +153,7 @@ $(function () {
         return formatted;
     }
 
-    function appendMessageToDOM(message) {
+    function appendMessageToDOM(message, scroll = true) {
         const { text, role } = message;
         const isUser = role === 'user';
         const avatar = isUser
@@ -175,7 +177,9 @@ $(function () {
             </div>
         `;
         $messages.append(content);
-        $messages.scrollTop($messages.prop('scrollHeight'));
+        if (scroll) {
+            $messages.scrollTop($messages.prop('scrollHeight'));
+        }
     }
 
     function showTypingIndicator() {
@@ -193,6 +197,13 @@ $(function () {
 
     function hideTypingIndicator() {
         $('#typing-indicator').remove();
+    }
+
+    function scrollToLastUserMessage() {
+        const $lastUserMsg = $messages.find('.justify-end').last();
+        if ($lastUserMsg.length) {
+            $lastUserMsg[0].scrollIntoView({ block: 'start', behavior: 'instant' });
+        }
     }
 
     // Initialize chat history on page load
@@ -254,12 +265,14 @@ $(function () {
             data: JSON.stringify({ message: text, chat_id: chatId }),
             success: function(response) {
                 hideTypingIndicator();
-                appendMessage({ text: response.response, role: 'assistant' });
+                appendMessage({ text: response.response, role: 'assistant', scroll: false });
+                scrollToLastUserMessage();
             },
             error: function(xhr, status, error) {
                 hideTypingIndicator();
                 const errorMessage = xhr.responseJSON?.error || 'Failed to get response from assistant';
-                appendMessage({ text: `Error: ${errorMessage}`, role: 'assistant' });
+                appendMessage({ text: `Error: ${errorMessage}`, role: 'assistant', scroll: false });
+                scrollToLastUserMessage();
             }
         });
     });
