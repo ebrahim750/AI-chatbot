@@ -19,38 +19,16 @@ $(function () {
     let chatId = localStorage.getItem('chatId') || generateChatId();
     localStorage.setItem('chatId', chatId);
 
-    // Chat history management with cookies
-    const CHAT_COOKIE_NAME = 'chatbot_history';
+    // Chat history management with localStorage
+    const CHAT_STORAGE_KEY = 'chatbot_history';
     let chatHistory = [];
 
-    // Cookie utility functions
-    function setCookie(name, value, days) {
-        const expires = new Date();
-        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-        document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/`;
-    }
-
-    function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-        }
-        return null;
-    }
-
-    function deleteCookie(name) {
-        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
-    }
-
     function saveChatHistory() {
-        setCookie(CHAT_COOKIE_NAME, JSON.stringify(chatHistory), 1); // 24 hours
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
     }
 
     function loadChatHistory() {
-        const saved = getCookie(CHAT_COOKIE_NAME);
+        const saved = localStorage.getItem(CHAT_STORAGE_KEY);
         if (saved) {
             try {
                 chatHistory = JSON.parse(saved);
@@ -72,7 +50,7 @@ $(function () {
 
     function clearChatHistory() {
         chatHistory = [];
-        deleteCookie(CHAT_COOKIE_NAME);
+        localStorage.removeItem(CHAT_STORAGE_KEY);
         $messages.empty();
         // Add welcome message
         appendMessage({ text: 'Hi! How can I help you today?', role: 'assistant' });
@@ -192,7 +170,7 @@ $(function () {
         const content = `
             <div class="mb-3 flex gap-2 ${containerClasses}">
                 ${isUser ? '' : avatar}
-                <div class="max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}">${displayText}</div>
+                <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}">${displayText}</div>
                 ${isUser ? avatar : ''}
             </div>
         `;
