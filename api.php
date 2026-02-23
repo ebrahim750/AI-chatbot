@@ -1,4 +1,6 @@
 <?php
+
+# configs
 $webhookTestUrl = 'https://ai-backend.simplyask.live/webhook-test/a26d6589-c02d-4907-9ae1-093ddf572aa9';
 $webhookProdUrl = 'https://ai-backend.simplyask.live/webhook/a26d6589-c02d-4907-9ae1-093ddf572aa9';
 $prod = true;
@@ -65,3 +67,5 @@ if (!isset($responseData['response'])) {
 }
 
 echo json_encode(['response' => $responseData['response']]);
+
+?>

@@ -5,6 +5,15 @@ $(function () {
     // Chat widget primary color (hex)
     const CHAT_COLOR = '#000000';
     
+    // FAB button label text
+    const FAB_LABEL = 'Need help?';
+    
+    // FAB button subtitle text
+    const FAB_SUBTITLE = 'AI Assistant';
+    
+    // Chat header label text
+    const HEADER_LABEL = 'Booking Assistant';
+    
     // User chat bubble color (hex)
     const USER_BUBBLE_COLOR = '#000000';
     
@@ -19,6 +28,18 @@ $(function () {
     const $snackbar = $('#error-snackbar');
     const $errorMessage = $('#error-message');
     const $errorDismiss = $('#error-dismiss');
+    const $fabLabel = $('#chat-fab-label');
+    const $fabSubtitle = $('#chat-fab-subtitle');
+    const $headerLabel = $('#header-label');
+    const $headerSubtitle = $('#header-subtitle');
+    
+    // Set FAB label and subtitle text
+    $fabLabel.text(FAB_LABEL);
+    $fabSubtitle.text(FAB_SUBTITLE);
+    
+    // Set header label and subtitle
+    $headerLabel.text(HEADER_LABEL);
+    $headerSubtitle.text(FAB_SUBTITLE);
     
     // Store typing indicator color (default indigo-500)
     let typingDotRgb = '99, 102, 241';
