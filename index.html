@@ -75,18 +75,33 @@
             opacity: 1;
         }
         
-        /* Chat window resize styles */
-        .chat-expanded {
-            width: 95vw !important;
-            max-width: 900px !important;
-            height: 85vh !important;
-        }
-        .chat-expanded #chat-messages {
-            height: calc(85vh - 140px) !important;
-        }
-        .chat-expanded #chat-input {
-            max-height: 120px !important;
-        }
+         /* Chat window resize styles */
+         .chat-expanded {
+             width: 95vw !important;
+             max-width: 900px !important;
+             height: 85vh !important;
+         }
+         .chat-expanded #chat-messages {
+             height: calc(85vh - 140px) !important;
+         }
+         .chat-expanded #chat-input {
+             max-height: 120px !important;
+         }
+
+         /* Mobile full-screen expanded chat */
+         @media (max-width: 640px) {
+             .chat-expanded {
+                 top: 0 !important;
+                 bottom: 0 !important;
+                 height: 100vh !important;
+                 width: 100% !important;
+                 max-width: 100% !important;
+                 border-radius: 0 !important;
+             }
+             .chat-expanded #chat-messages {
+                 height: calc(100vh - 140px) !important;
+             }
+         }
 
         /* Error snackbar transition */
         #error-snackbar {

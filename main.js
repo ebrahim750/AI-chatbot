@@ -16,7 +16,7 @@ $(function () {
     const CHAT_WINDOW_FAB_GAP_MOBILE = 60;   // 80 - 20
     
     // Chat widget primary color (hex)
-    const CHAT_COLOR = '#e3542a';
+    const CHAT_COLOR = '#dd3a0a';
     
     // FAB button label text
     const FAB_LABEL = 'Need help?';
@@ -25,10 +25,10 @@ $(function () {
     const FAB_SUBTITLE = 'AI Assistant';
     
     // Chat header label text
-    const HEADER_LABEL = 'Booking Assistant';
+    const HEADER_LABEL = 'S.A.M (Simply Ask Me)';
     
     // User chat bubble color (hex)
-    const USER_BUBBLE_COLOR = 'grey';
+    const USER_BUBBLE_COLOR = '#6e5e5e';
     
     // User chat text color (hex)
     const USER_TEXT_COLOR = '#ffffff';
@@ -144,15 +144,18 @@ $(function () {
               bottom: fabVOffset + 'px'
           });
           
-           // On mobile, force expanded mode (maximized)
+           // Mobile: manage expanded class based on window state
            if (isMobile) {
-               if (!$window.hasClass('chat-expanded')) {
-                   $window.addClass('chat-expanded');
-                   // Update resize button icon to "minimize" state (though button hidden)
-                   const resizeIcon = $('#chat-resize svg');
-                   // Use the minimize icon path (same as default? Actually the paths are identical in original code)
-                   resizeIcon.html('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>');
-                   $('#chat-resize').attr('title', 'Make chat smaller');
+               if ($window.hasClass('opacity-100')) {
+                   // Open: ensure expanded
+                   if (!$window.hasClass('chat-expanded')) {
+                       $window.addClass('chat-expanded');
+                   }
+               } else {
+                   // Closed: remove expanded to keep small size
+                   if ($window.hasClass('chat-expanded')) {
+                       $window.removeClass('chat-expanded');
+                   }
                }
            }
            
