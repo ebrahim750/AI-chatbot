@@ -122,10 +122,16 @@ $(function () {
          const hOffset = isMobile ? CHAT_HORIZONTAL_OFFSET_MOBILE : CHAT_HORIZONTAL_OFFSET_DESKTOP;
          const fabVOffset = isMobile ? CHAT_FAB_VERTICAL_OFFSET_MOBILE : CHAT_FAB_VERTICAL_OFFSET_DESKTOP;
          const gap = isMobile ? CHAT_WINDOW_FAB_GAP_MOBILE : CHAT_WINDOW_FAB_GAP_DESKTOP;
-         const winVOffset = fabVOffset + gap;
-         
-         const side = CHAT_POSITION; // 'left' or 'right'
-         
+          // Calculate window bottom offset
+          let winVOffset = fabVOffset + gap;
+          
+          // On mobile, if window is open (FAB hidden), set window bottom to 0 (no gap)
+          if (isMobile && $window.hasClass('opacity-100')) {
+              winVOffset = 0;
+          }
+          
+          const side = CHAT_POSITION; // 'left' or 'right'
+          
           // Apply to chat window
           $window.css({
               [side]: hOffset + 'px',
@@ -138,18 +144,30 @@ $(function () {
               bottom: fabVOffset + 'px'
           });
           
-          // On mobile, force expanded mode (maximized)
-          if (isMobile) {
-              if (!$window.hasClass('chat-expanded')) {
-                  $window.addClass('chat-expanded');
-                  // Update resize button icon to "minimize" state (though button hidden)
-                  const resizeIcon = $('#chat-resize svg');
-                  // Use the minimize icon path (same as default? Actually the paths are identical in original code)
-                  resizeIcon.html('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>');
-                  $('#chat-resize').attr('title', 'Make chat smaller');
-              }
-          }
-      }
+           // On mobile, force expanded mode (maximized)
+           if (isMobile) {
+               if (!$window.hasClass('chat-expanded')) {
+                   $window.addClass('chat-expanded');
+                   // Update resize button icon to "minimize" state (though button hidden)
+                   const resizeIcon = $('#chat-resize svg');
+                   // Use the minimize icon path (same as default? Actually the paths are identical in original code)
+                   resizeIcon.html('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>');
+                   $('#chat-resize').attr('title', 'Make chat smaller');
+               }
+           }
+           
+           // Handle FAB visibility on mobile
+           if (isMobile) {
+               if ($window.hasClass('opacity-100')) {
+                   $fab.addClass('fab-mobile-hidden');
+               } else {
+                   $fab.removeClass('fab-mobile-hidden');
+               }
+           } else {
+               // On desktop, ensure FAB is visible
+               $fab.removeClass('fab-mobile-hidden');
+           }
+       }
     
     // Initial positioning
     updatePositioning();
@@ -210,27 +228,27 @@ $(function () {
         appendMessage({ text: 'Hi! How can I help you today?', role: 'assistant' });
     }
 
-    function toggleWindow(show) {
-        if (show === true) {
-            $window.removeClass('opacity-0 scale-95 pointer-events-none');
-            $window.addClass('opacity-100 scale-100 pointer-events-auto');
-            setTimeout(() => $input.trigger('focus'), 300);
-            return;
-        }
-        if (show === false) {
-            $window.removeClass('opacity-100 scale-100 pointer-events-auto');
-            $window.addClass('opacity-0 scale-95 pointer-events-none');
-            return;
-        }
-        if ($window.hasClass('opacity-0')) {
-            $window.removeClass('opacity-0 scale-95 pointer-events-none');
-            $window.addClass('opacity-100 scale-100 pointer-events-auto');
-            setTimeout(() => $input.trigger('focus'), 300);
-        } else {
-            $window.removeClass('opacity-100 scale-100 pointer-events-auto');
-            $window.addClass('opacity-0 scale-95 pointer-events-none');
-        }
-    }
+     function toggleWindow(show) {
+         if (show === true) {
+             $window.removeClass('opacity-0 scale-95 pointer-events-none');
+             $window.addClass('opacity-100 scale-100 pointer-events-auto');
+             setTimeout(() => $input.trigger('focus'), 300);
+         } else if (show === false) {
+             $window.removeClass('opacity-100 scale-100 pointer-events-auto');
+             $window.addClass('opacity-0 scale-95 pointer-events-none');
+         } else {
+             if ($window.hasClass('opacity-0')) {
+                 $window.removeClass('opacity-0 scale-95 pointer-events-none');
+                 $window.addClass('opacity-100 scale-100 pointer-events-auto');
+                 setTimeout(() => $input.trigger('focus'), 300);
+             } else {
+                 $window.removeClass('opacity-100 scale-100 pointer-events-auto');
+                 $window.addClass('opacity-0 scale-95 pointer-events-none');
+             }
+         }
+         // Update FAB visibility and positioning after toggle
+         updatePositioning();
+     }
 
     function appendMessage({ text, role, scroll = true }) {
         // Add to chat history
