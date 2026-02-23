@@ -2,6 +2,19 @@ $(function () {
     // Chat widget position configuration: 'left' or 'right'
     const CHAT_POSITION = 'right';
     
+    // Positioning configuration (pixels)
+    // Horizontal offset from edge (left or right depending on CHAT_POSITION)
+    const CHAT_HORIZONTAL_OFFSET_DESKTOP = 50;
+    const CHAT_HORIZONTAL_OFFSET_MOBILE = 16;
+    
+    // Vertical offset from bottom (in pixels)
+    const CHAT_FAB_VERTICAL_OFFSET_DESKTOP = 50;     // bottom-6 ≈ 24px
+    const CHAT_FAB_VERTICAL_OFFSET_MOBILE = 20;
+    
+    // Gap between FAB bottom and window bottom (in pixels)
+    const CHAT_WINDOW_FAB_GAP_DESKTOP = 72;  // 96 - 24
+    const CHAT_WINDOW_FAB_GAP_MOBILE = 60;   // 80 - 20
+    
     // Chat widget primary color (hex)
     const CHAT_COLOR = '#e3542a';
     
@@ -103,11 +116,34 @@ $(function () {
     // Apply colors
     applyChatColor(CHAT_COLOR);
     
-    // Apply position classes based on configuration
-    if (CHAT_POSITION === 'left') {
-        $fab.removeClass('right-6').addClass('left-6');
-        $window.removeClass('right-6').addClass('left-6');
-    }
+     // Positioning function for desktop/mobile responsive offsets
+     function updatePositioning() {
+         const isMobile = window.innerWidth < 640; // sm breakpoint
+         const hOffset = isMobile ? CHAT_HORIZONTAL_OFFSET_MOBILE : CHAT_HORIZONTAL_OFFSET_DESKTOP;
+         const fabVOffset = isMobile ? CHAT_FAB_VERTICAL_OFFSET_MOBILE : CHAT_FAB_VERTICAL_OFFSET_DESKTOP;
+         const gap = isMobile ? CHAT_WINDOW_FAB_GAP_MOBILE : CHAT_WINDOW_FAB_GAP_DESKTOP;
+         const winVOffset = fabVOffset + gap;
+         
+         const side = CHAT_POSITION; // 'left' or 'right'
+         
+         // Apply to chat window
+         $window.css({
+             [side]: hOffset + 'px',
+             bottom: winVOffset + 'px'
+         });
+         
+         // Apply to FAB
+         $fab.css({
+             [side]: hOffset + 'px',
+             bottom: fabVOffset + 'px'
+         });
+     }
+    
+    // Initial positioning
+    updatePositioning();
+    
+    // Update on window resize
+    $(window).on('resize', updatePositioning);
 
     function generateChatId() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
