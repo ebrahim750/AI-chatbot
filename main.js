@@ -133,10 +133,22 @@ $(function () {
           const side = CHAT_POSITION; // 'left' or 'right'
           
           // Apply to chat window
-          $window.css({
-              [side]: hOffset + 'px',
-              bottom: winVOffset + 'px'
-          });
+          if (isMobile) {
+              // On mobile, center horizontally with auto margins
+              $window.css({
+                  left: '0',
+                   right: '0',
+                   marginLeft: 'auto',
+                   marginRight: 'auto',
+                   bottom: winVOffset + 'px'
+               });
+          } else {
+              // On desktop, position based on config
+              $window.css({
+                  [side]: hOffset + 'px',
+                  bottom: winVOffset + 'px'
+              });
+          }
           
           // Apply to FAB
           $fab.css({
