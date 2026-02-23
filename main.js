@@ -126,18 +126,30 @@ $(function () {
          
          const side = CHAT_POSITION; // 'left' or 'right'
          
-         // Apply to chat window
-         $window.css({
-             [side]: hOffset + 'px',
-             bottom: winVOffset + 'px'
-         });
-         
-         // Apply to FAB
-         $fab.css({
-             [side]: hOffset + 'px',
-             bottom: fabVOffset + 'px'
-         });
-     }
+          // Apply to chat window
+          $window.css({
+              [side]: hOffset + 'px',
+              bottom: winVOffset + 'px'
+          });
+          
+          // Apply to FAB
+          $fab.css({
+              [side]: hOffset + 'px',
+              bottom: fabVOffset + 'px'
+          });
+          
+          // On mobile, force expanded mode (maximized)
+          if (isMobile) {
+              if (!$window.hasClass('chat-expanded')) {
+                  $window.addClass('chat-expanded');
+                  // Update resize button icon to "minimize" state (though button hidden)
+                  const resizeIcon = $('#chat-resize svg');
+                  // Use the minimize icon path (same as default? Actually the paths are identical in original code)
+                  resizeIcon.html('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>');
+                  $('#chat-resize').attr('title', 'Make chat smaller');
+              }
+          }
+      }
     
     // Initial positioning
     updatePositioning();
