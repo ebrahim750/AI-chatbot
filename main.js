@@ -3,7 +3,7 @@ $(function () {
     const CHAT_POSITION = 'right';
     
     // Chat widget primary color (hex)
-    const CHAT_COLOR = '#000000';
+    const CHAT_COLOR = '#e3542a';
     
     // FAB button label text
     const FAB_LABEL = 'Need help?';
@@ -15,7 +15,7 @@ $(function () {
     const HEADER_LABEL = 'Booking Assistant';
     
     // User chat bubble color (hex)
-    const USER_BUBBLE_COLOR = '#000000';
+    const USER_BUBBLE_COLOR = 'grey';
     
     // User chat text color (hex)
     const USER_TEXT_COLOR = '#ffffff';
@@ -41,7 +41,7 @@ $(function () {
     $headerLabel.text(HEADER_LABEL);
     $headerSubtitle.text(FAB_SUBTITLE);
     
-    // Store typing indicator color (default indigo-500)
+    // Store typing indicator color (default tailwind:indigo-500)
     let typingDotRgb = '99, 102, 241';
     
     // Helper function to convert hex to RGB
@@ -198,6 +198,26 @@ $(function () {
     function formatMarkdown(text) {
         // Escape HTML first
         let formatted = $('<div>').text(text).html();
+        
+        // Convert links: [text](url)
+        formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
+            // Only allow http and https protocols
+            if (!/^https?:\/\//i.test(url)) {
+                return match; // Return original if not allowed
+            }
+            // Decode any HTML entities in the URL
+            const decodedUrl = $('<div>').html(url).text();
+            return `<a href="${decodedUrl}" target="_blank" rel="noopener noreferrer" class="chat-link">${linkText}</a>`;
+        });
+        
+        // Convert bare URLs: http://example.com or https://example.com
+        formatted = formatted.replace(/(https?:\/\/[^\s<"']+)/g, function(match) {
+            // Decode any HTML entities in the URL
+            const decodedUrl = $('<div>').html(match).text();
+            // Truncate long URLs for display
+            const displayUrl = decodedUrl.length > 50 ? decodedUrl.substring(0, 47) + '...' : decodedUrl;
+            return `<a href="${decodedUrl}" target="_blank" rel="noopener noreferrer" class="chat-link">${displayUrl}</a>`;
+        });
         
         // Bold text **text** or __text__
         formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
