@@ -1,6 +1,6 @@
 <?php
-$webhookTestUrl = 'https://n8n.simplyit.africa/webhook-test/a26d6589-c02d-4907-9ae1-093ddf572aa9';
-$webhookProdUrl = 'https://n8n.simplyit.africa/webhook/a26d6589-c02d-4907-9ae1-093ddf572aa9';
+$webhookTestUrl = 'https://ai-backend.simplyask.live/webhook-test/a26d6589-c02d-4907-9ae1-093ddf572aa9';
+$webhookProdUrl = 'https://ai-backend.simplyask.live/webhook/a26d6589-c02d-4907-9ae1-093ddf572aa9';
 $prod = false;
 
 header('Content-Type: application/json');

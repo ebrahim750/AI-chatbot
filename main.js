@@ -1,6 +1,6 @@
 $(function () {
     // Chat widget position configuration: 'left' or 'right'
-    const CHAT_POSITION = 'left';
+    const CHAT_POSITION = 'right';
     
     // Chat widget primary color (hex)
     const CHAT_COLOR = '#000000';
