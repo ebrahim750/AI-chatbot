@@ -76,7 +76,18 @@
         .chat-expanded #chat-input {
             max-height: 120px !important;
         }
-    </style>
+
+        /* Error snackbar transition */
+        #error-snackbar {
+            transform: translateY(-100%);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        #error-snackbar.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
     <!-- Floating Chat Button -->
@@ -92,7 +103,7 @@
     <!-- Chat Window -->
     <div id="chat-window" class="fixed bottom-24 right-6 z-40 w-[92vw] max-w-lg rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-300 opacity-0 scale-95 pointer-events-none">
         <!-- Header -->
-        <div class="flex items-center justify-between rounded-t-2xl bg-indigo-600 px-4 py-3 text-white">
+        <div class="flex items-center justify-between relative rounded-t-2xl bg-indigo-600 px-4 py-3 text-white">
             <div class="flex items-center gap-3">
                 <div class="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -103,8 +114,27 @@
                 <div>
                     <p class="text-sm leading-tight opacity-90">Booking Assistant</p>
                     <p class="text-xs leading-tight opacity-70">AI</p>
+            </div>
+            <!-- Error Snackbar (hidden by default) -->
+            <div id="error-snackbar" class="hidden absolute top-full left-0 right-0 z-50 bg-red-500 text-white px-4 py-3 text-sm shadow-lg transition-all duration-300 transform -translate-y-full opacity-0">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span id="error-message" class="font-medium"></span>
+                    </div>
+                    <button id="error-dismiss" class="ml-4 p-1 hover:bg-red-600 rounded transition-colors" title="Dismiss">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
+        </div>
             <div class="flex items-center gap-1">
                 <button id="chat-clear" class="rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40" title="Clear chat history">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>

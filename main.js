@@ -16,6 +16,12 @@ $(function () {
     const $form = $('#chat-form');
     const $input = $('#chat-input');
     const $messages = $('#chat-messages');
+    const $snackbar = $('#error-snackbar');
+    const $errorMessage = $('#error-message');
+    const $errorDismiss = $('#error-dismiss');
+    
+    // Store typing indicator color (default indigo-500)
+    let typingDotRgb = '99, 102, 241';
     
     // Helper function to convert hex to RGB
     function hexToRgb(hex) {
@@ -33,6 +39,8 @@ $(function () {
         if (!rgb) return;
         
         const rgbString = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+        // Store for typing indicator
+        typingDotRgb = rgbString;
         
         // FAB button
         $fab.css('background-color', color);
@@ -259,11 +267,12 @@ $(function () {
     }
 
     function showTypingIndicator() {
+        const dotStyle = `style="background-color: rgb(${typingDotRgb})"`;
         const content = `
             <div class="mb-3 flex gap-2" id="typing-indicator">
                 <img src="img/bot.png" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover">
                 <div class="max-w-[75%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200 shadow">
-                    <span class="typing"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span>
+                    <span class="typing"><span class="typing-dot" ${dotStyle}></span><span class="typing-dot" ${dotStyle}></span><span class="typing-dot" ${dotStyle}></span></span>
                 </div>
             </div>
         `;
@@ -308,8 +317,29 @@ $(function () {
         // Scroll to bottom after resize
         setTimeout(() => {
             $messages.scrollTop($messages.prop('scrollHeight'));
-        }, 100);
-    }
+         }, 100);
+     }
+
+     // Snackbar error notification
+     function showErrorSnackbar(message) {
+         $errorMessage.text(message);
+         $snackbar.removeClass('hidden').addClass('show');
+         
+         // Auto-hide after 30 seconds
+         setTimeout(() => {
+             hideErrorSnackbar();
+         }, 30000);
+     }
+
+     function hideErrorSnackbar() {
+         $snackbar.removeClass('show');
+         setTimeout(() => {
+             $snackbar.addClass('hidden');
+         }, 300);
+     }
+
+     // Dismiss button handler
+     $errorDismiss.on('click', hideErrorSnackbar);
 
     // Toggle handlers
     $fab.on('click', () => toggleWindow());
@@ -346,8 +376,10 @@ $(function () {
             },
             error: function(xhr, status, error) {
                 hideTypingIndicator();
-                const errorMessage = xhr.responseJSON?.error || 'Failed to get response from assistant';
-                appendMessage({ text: `Error: ${errorMessage}`, role: 'assistant', scroll: false });
+                // Log technical details for debugging
+                console.error('Chat API error:', { status, error, response: xhr.responseJSON });
+                // Show generic user-friendly message
+                showErrorSnackbar('An error occurred, please try again.');
                 scrollToLastUserMessage();
             }
         });

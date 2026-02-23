@@ -1,7 +1,7 @@
 <?php
 $webhookTestUrl = 'https://ai-backend.simplyask.live/webhook-test/a26d6589-c02d-4907-9ae1-093ddf572aa9';
 $webhookProdUrl = 'https://ai-backend.simplyask.live/webhook/a26d6589-c02d-4907-9ae1-093ddf572aa9';
-$prod = false;
+$prod = true;
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
