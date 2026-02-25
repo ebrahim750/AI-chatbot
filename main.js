@@ -45,6 +45,8 @@ $(function () {
     const $fabSubtitle = $('#chat-fab-subtitle');
     const $headerLabel = $('#header-label');
     const $headerSubtitle = $('#header-subtitle');
+    const $sendBtn = $('#chat-send');
+    let isWaitingForResponse = false;
     
     // Set FAB label and subtitle text
     $fabLabel.text(FAB_LABEL);
@@ -53,6 +55,12 @@ $(function () {
     // Set header label and subtitle
     $headerLabel.text(HEADER_LABEL);
     $headerSubtitle.text(FAB_SUBTITLE);
+    
+    // Initialize visibility - hide skeleton, show actual content, show FAB
+    $('#chat-skeleton').hide();
+    $('#chat-content').removeClass('hidden').show();
+    $fab.css('visibility', 'visible');
+    $window.css('visibility', 'visible');
     
     // Store typing indicator color (default tailwind:indigo-500)
     let typingDotRgb = '99, 102, 241';
@@ -86,7 +94,7 @@ $(function () {
         });
         
         // Header
-        $window.find('> div:first-child').css('background-color', color);
+        $('#chat-content > div:first-child').css('background-color', color);
         
         // Send button
         $('#chat-send').css('background-color', color);
@@ -236,6 +244,8 @@ $(function () {
     }
 
     function clearChatHistory() {
+        chatId = generateChatId();
+        localStorage.setItem('chatId', chatId);
         chatHistory = [];
         localStorage.removeItem(CHAT_STORAGE_KEY);
         $messages.empty();
@@ -477,7 +487,10 @@ $(function () {
     $form.on('submit', function (e) {
         e.preventDefault();
         const text = $input.val().trim();
-        if (!text) return;
+        if (!text || isWaitingForResponse) return;
+
+        isWaitingForResponse = true;
+        $sendBtn.prop('disabled', true);
 
         appendMessage({ text, role: 'user' });
         $input.val('');
@@ -495,6 +508,8 @@ $(function () {
                 hideTypingIndicator();
                 appendMessage({ text: response.response, role: 'assistant', scroll: false });
                 scrollToLastUserMessage();
+                isWaitingForResponse = false;
+                $sendBtn.prop('disabled', false);
             },
             error: function(xhr, status, error) {
                 hideTypingIndicator();
@@ -503,13 +518,15 @@ $(function () {
                 // Show generic user-friendly message
                 showErrorSnackbar('An error occurred, please try again.');
                 scrollToLastUserMessage();
+                isWaitingForResponse = false;
+                $sendBtn.prop('disabled', false);
             }
         });
     });
 
     // Enter to send, Shift+Enter for newline
     $input.on('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && !isWaitingForResponse) {
             e.preventDefault();
             $form.trigger('submit');
         }
