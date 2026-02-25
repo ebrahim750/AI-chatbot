@@ -34,7 +34,7 @@ $(function () {
     const USER_TEXT_COLOR = '#ffffff';
     
     // Welcome message
-    const WELCOME_MESSAGE = 'Hi! I am SAM. Have any questions about SimplyIT? Or would you like to book a free audit for your business?';
+    const WELCOME_MESSAGE = 'Hi! I am SAM, how may I be of assistance?\n Have any questions about SimplyIT?\n Or would you like to book a free audit for your business?';
     
     const $window = $('#chat-window');
     const $fab = $('#chat-fab');
@@ -290,8 +290,14 @@ $(function () {
 
     // Markdown formatting function
     function formatMarkdown(text) {
-        // Escape HTML first
-        let formatted = $('<div>').text(text).html();
+        // Convert escaped newlines to actual newlines first
+        let formatted = text.replace(/\\n/g, '\n');
+        
+        // Escape HTML
+        formatted = $('<div>').text(formatted).html();
+        
+        // Convert newlines to <br>
+        formatted = formatted.replace(/\n/g, '<br>');
         
         // Convert links: [text](url)
         formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
