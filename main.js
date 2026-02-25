@@ -33,6 +33,9 @@ $(function () {
     // User chat text color (hex)
     const USER_TEXT_COLOR = '#ffffff';
     
+    // Welcome message
+    const WELCOME_MESSAGE = 'Hi! I am SAM. Have any questions about SimplyIT? Or would you like to book a free audit for your business?';
+    
     const $window = $('#chat-window');
     const $fab = $('#chat-fab');
     const $form = $('#chat-form');
@@ -250,7 +253,7 @@ $(function () {
         localStorage.removeItem(CHAT_STORAGE_KEY);
         $messages.empty();
         // Add welcome message
-        appendMessage({ text: 'Hi! How can I help you today?', role: 'assistant' });
+        appendMessage({ text: WELCOME_MESSAGE, role: 'assistant' });
     }
 
      function toggleWindow(show) {
@@ -426,7 +429,7 @@ $(function () {
     // Initialize chat history on page load
     loadChatHistory();
     if (chatHistory.length === 0) {
-        appendMessage({ text: 'Hi! How can I help you today?', role: 'assistant' });
+        appendMessage({ text: WELCOME_MESSAGE, role: 'assistant' });
     }
 
     // Resize functionality
