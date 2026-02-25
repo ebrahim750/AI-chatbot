@@ -1,8 +1,8 @@
 <?php
 
 # configs
-$webhookTestUrl = 'https://ai-backend.simplyask.live/webhook-test/a26d6589-c02d-4907-9ae1-093ddf572aa9';
-$webhookProdUrl = 'https://ai-backend.simplyask.live/webhook/a26d6589-c02d-4907-9ae1-093ddf572aa9';
+$webhookTestUrl = 'https://ai-backend.simplyask.live/webhook-test/facd547d-5e9b-4f70-9970-ac17be2823b1';
+$webhookProdUrl = 'https://ai-backend.simplyask.live/webhook/facd547d-5e9b-4f70-9970-ac17be2823b1';
 $prod = true;
 
 header('Content-Type: application/json');
