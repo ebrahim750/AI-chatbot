@@ -31,7 +31,7 @@ $(function () {
     const TYPING_ANIMATION_ENABLED = true;
     
     // Typing speed for AI responses (milliseconds per character)
-    const TYPING_SPEED = 5;
+    const TYPING_SPEED = 2;
     
     // Chat header label text
     const HEADER_LABEL = 'S.A.M (Simply Ask Me)';
