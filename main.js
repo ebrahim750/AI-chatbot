@@ -296,9 +296,6 @@ $(function () {
         // Escape HTML
         formatted = $('<div>').text(formatted).html();
         
-        // Convert newlines to <br>
-        formatted = formatted.replace(/\n/g, '<br>');
-        
         // Convert links: [text](url)
         formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
             // Only allow http and https protocols
@@ -337,6 +334,9 @@ $(function () {
         
         // Bullet points * item or - item
         formatted = formatted.replace(/^[\*\-\+]\s+(.*)$/gm, '<div class="flex mb-1"><span class="mr-2">•</span><span>$1</span></div>');
+
+        // Remove newlines after list items to prevent extra paragraph spacing
+        formatted = formatted.replace(/<\/div>\n\n/g, '</div>');
 
         // Tables
         formatted = formatted.replace(/(\|.*\|[\r\n]+)(\|[\s\-:|]+\|[\r\n]+)((?:\|.*\|[\r\n]+)+)/g, (match, header, separator, body) => {
@@ -504,8 +504,10 @@ $(function () {
         appendMessage({ text, role: 'user' });
         $input.val('');
 
-        // Show typing while waiting for response
-        showTypingIndicator();
+        // Delay typing indicator by 1 second (but don't delay the API call)
+        let typingTimeout = setTimeout(() => {
+            showTypingIndicator();
+        }, 1000);
 
         // Send to n8n webhook via PHP
         $.ajax({
@@ -514,6 +516,7 @@ $(function () {
             contentType: 'application/json',
             data: JSON.stringify({ message: text, chat_id: chatId }),
             success: function(response) {
+                clearTimeout(typingTimeout);
                 hideTypingIndicator();
                 appendMessage({ text: response.response, role: 'assistant', scroll: false });
                 scrollToLastUserMessage();
@@ -521,6 +524,7 @@ $(function () {
                 $sendBtn.prop('disabled', false);
             },
             error: function(xhr, status, error) {
+                clearTimeout(typingTimeout);
                 hideTypingIndicator();
                 // Log technical details for debugging
                 console.error('Chat API error:', { status, error, response: xhr.responseJSON });
