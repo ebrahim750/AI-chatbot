@@ -288,93 +288,15 @@ $(function () {
         appendMessageToDOM(message, scroll);
     }
 
-    // Markdown formatting function
+    // Initialize Showdown converter
+    const markdownConverter = new showdown.Converter({
+        tables: true,
+        openLinksInNewWindow: true,
+        linkTarget: '_blank'
+    });
+
     function formatMarkdown(text) {
-        // Convert escaped newlines to actual newlines first
-        let formatted = text.replace(/\\n/g, '\n');
-        
-        // Escape HTML
-        formatted = $('<div>').text(formatted).html();
-        
-        // Convert links: [text](url)
-        formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
-            // Only allow http and https protocols
-            if (!/^https?:\/\//i.test(url)) {
-                return match; // Return original if not allowed
-            }
-            // Decode any HTML entities in the URL
-            const decodedUrl = $('<div>').html(url).text();
-            return `<a href="${decodedUrl}" target="_blank" rel="noopener noreferrer" class="chat-link">${linkText}</a>`;
-        });
-        
-        // Convert bare URLs: http://example.com or https://example.com
-        formatted = formatted.replace(/(https?:\/\/[^\s<"']+)/g, function(match) {
-            // Decode any HTML entities in the URL
-            const decodedUrl = $('<div>').html(match).text();
-            // Truncate long URLs for display
-            const displayUrl = decodedUrl.length > 50 ? decodedUrl.substring(0, 47) + '...' : decodedUrl;
-            return `<a href="${decodedUrl}" target="_blank" rel="noopener noreferrer" class="chat-link">${displayUrl}</a>`;
-        });
-        
-        // Bold text **text** or __text__
-        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        formatted = formatted.replace(/__(.*?)__/g, '<strong>$1</strong>');
-        
-        // Italic text *text* or _text_
-        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        formatted = formatted.replace(/_(.*?)_/g, '<em>$1</em>');
-        
-        // Headers ### Header
-        formatted = formatted.replace(/^### (.*$)/gm, '<h3 class="font-semibold text-base mt-3 mb-2">$1</h3>');
-        formatted = formatted.replace(/^## (.*$)/gm, '<h2 class="font-semibold text-lg mt-4 mb-2">$1</h2>');
-        formatted = formatted.replace(/^# (.*$)/gm, '<h1 class="font-bold text-xl mt-4 mb-3">$1</h1>');
-        
-        // Numbered lists 1. item
-        formatted = formatted.replace(/^(\d+)\.\s+(.*)$/gm, '<div class="flex mb-1"><span class="font-medium mr-2">$1.</span><span>$2</span></div>');
-        
-        // Bullet points * item or - item
-        formatted = formatted.replace(/^[\*\-\+]\s+(.*)$/gm, '<div class="flex mb-1"><span class="mr-2">•</span><span>$1</span></div>');
-
-        // Remove newlines after list items to prevent extra paragraph spacing
-        formatted = formatted.replace(/<\/div>\n\n/g, '</div>');
-
-        // Tables
-        formatted = formatted.replace(/(\|.*\|[\r\n]+)(\|[\s\-:|]+\|[\r\n]+)((?:\|.*\|[\r\n]+)+)/g, (match, header, separator, body) => {
-            const headerCells = header.trim().split('|').filter(c => c.trim() !== '');
-            const alignments = separator.trim().split('|').filter(c => c.trim() !== '');
-            const bodyRows = body.trim().split('\n');
-            let html = '<table class="border-collapse border border-slate-200 mb-3"><thead><tr>';
-            headerCells.forEach((cell, i) => {
-                const align = alignments[i]?.includes(':---:') ? 'text-center' : alignments[i]?.includes('---:') ? 'text-right' : 'text-left';
-                html += `<th class="${align} px-3 py-2 border border-slate-200 font-semibold">${cell.trim()}</th>`;
-            });
-            html += '</tr></thead><tbody>';
-            bodyRows.forEach(row => {
-                if (row.trim()) {
-                    const cells = row.trim().split('|').filter(c => c.trim() !== '');
-                    html += '<tr>';
-                    cells.forEach((cell, i) => {
-                        const align = alignments[i]?.includes(':---:') ? 'text-center' : alignments[i]?.includes('---:') ? 'text-right' : 'text-left';
-                        html += `<td class="${align} px-3 py-2 border border-slate-200">${cell.trim()}</td>`;
-                    });
-                    html += '</tr>';
-                }
-            });
-            return html + '</tbody></table>';
-        });
-
-        // Line breaks (double newline = paragraph break)
-        formatted = formatted.replace(/\n\n/g, '</p><p class="mb-2">');
-        formatted = '<p class="mb-2">' + formatted + '</p>';
-        
-        // Single line breaks
-        formatted = formatted.replace(/\n/g, '<br>');
-        
-        // Clean up empty paragraphs
-        formatted = formatted.replace(/<p class="mb-2"><\/p>/g, '');
-        formatted = formatted.replace(/<p class="mb-2"><br><\/p>/g, '');
-        
-        return formatted;
+        return markdownConverter.makeHtml(text);
     }
 
     function appendMessageToDOM(message, scroll = true) {

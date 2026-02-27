@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jQuery (CDN) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Showdown.js (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,6 +44,9 @@
         .formatted-content h1, .formatted-content h2, .formatted-content h3 {
             line-height: 1.4;
         }
+        .formatted-content h1 { font-weight: 700; font-size: 1.25rem; margin-top: 1rem; margin-bottom: 0.75rem; }
+        .formatted-content h2 { font-weight: 600; font-size: 1.125rem; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .formatted-content h3 { font-weight: 600; font-size: 1rem; margin-top: 0.75rem; margin-bottom: 0.5rem; }
         .formatted-content p {
             line-height: 1.5;
             margin-bottom: 0.5rem;
@@ -54,7 +59,7 @@
         }
         .formatted-content ul, .formatted-content ol {
             margin: 0.5rem 0;
-            padding-left: 0;
+            padding-left: 1.5rem;
         }
         .formatted-content li {
             margin-bottom: 0.25rem;
@@ -64,14 +69,35 @@
             line-height: 1.2;
         }
         
+        /* Tables */
+        .formatted-content table {
+            border-collapse: collapse;
+            margin: 0.75rem 0;
+            width: 100%;
+            overflow-x: auto;
+            display: block;
+        }
+        .formatted-content th, .formatted-content td {
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+        }
+        .formatted-content th {
+            font-weight: 600;
+            background-color: #f8fafc;
+        }
+        .formatted-content tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        
         /* Chat link styles */
-        .chat-link {
+        .formatted-content a {
             color: inherit;
             opacity: 0.8;
             text-decoration: underline;
             word-break: break-all;
         }
-        .chat-link:hover {
+        .formatted-content a:hover {
             opacity: 1;
         }
         
