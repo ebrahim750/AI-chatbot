@@ -27,6 +27,12 @@ $(function () {
     // Enable/disable pulsing animation (true/false)
     const FAB_PULSE_ENABLED = true;
     
+    // Enable/disable typing animation for AI responses (true/false)
+    const TYPING_ANIMATION_ENABLED = true;
+    
+    // Typing speed for AI responses (milliseconds per character)
+    const TYPING_SPEED = 5;
+    
     // Chat header label text
     const HEADER_LABEL = 'S.A.M (Simply Ask Me)';
     
@@ -289,14 +295,70 @@ $(function () {
          updatePositioning();
      }
 
-    function appendMessage({ text, role, scroll = true }) {
+    function appendMessage({ text, role, scroll = true, typing = false }) {
         // Add to chat history
         const message = { text, role, timestamp: Date.now() };
         chatHistory.push(message);
         saveChatHistory();
         
         // Render to DOM
-        appendMessageToDOM(message, scroll);
+        if (typing && TYPING_ANIMATION_ENABLED && role === 'assistant') {
+            appendMessageWithTyping(message, scroll);
+        } else {
+            appendMessageToDOM(message, scroll);
+        }
+    }
+
+    function appendMessageWithTyping(message, scroll = true) {
+        const { text, role } = message;
+        const isUser = role === 'user';
+        const avatar = isUser
+            ? '<img src="img/user.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">'
+            : '<img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">';
+
+        const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
+        const bubbleClasses = isUser
+            ? 'rounded-br-sm'
+            : 'bg-white text-slate-800 ring-1 ring-slate-200 rounded-tl-sm';
+
+        const containerClasses = isUser ? 'justify-end' : '';
+        
+        const content = `
+            <div class="mb-3 flex gap-2 ${containerClasses}">
+                ${isUser ? '' : avatar}
+                <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}"><span class="typing-text"></span></div>
+                ${isUser ? avatar : ''}
+            </div>
+        `;
+        $messages.append(content);
+        
+        const $typingEl = $messages.find('.typing-text').last();
+        let userScrolledUp = false;
+        
+        $messages.on('scroll', function() {
+            const maxScroll = $(this).prop('scrollHeight') - $(this).outerHeight();
+            const isNearBottom = $(this).scrollTop() >= maxScroll - 10;
+            if (!isNearBottom) {
+                userScrolledUp = true;
+            } else {
+                userScrolledUp = false;
+            }
+        });
+        
+        function typeNextChar(index) {
+            if (index < text.length) {
+                const partialText = text.substring(0, index + 1);
+                const partialHtml = formatMarkdown(partialText);
+                $typingEl.html(partialHtml);
+                
+                if (!userScrolledUp) {
+                    $messages.scrollTop($messages.prop('scrollHeight'));
+                }
+                setTimeout(() => typeNextChar(index + 1), TYPING_SPEED);
+            }
+        }
+        
+        typeNextChar(0);
     }
 
     // Initialize Showdown converter
@@ -340,13 +402,13 @@ $(function () {
         }
     }
 
-    function showTypingIndicator() {
+    function showThinkingIndicator() {
         const dotStyle = `style="background-color: rgb(${typingDotRgb})"`;
         const content = `
-            <div class="mb-3 flex gap-2" id="typing-indicator">
+            <div class="mb-3 flex gap-2" id="thinking-indicator">
                 <img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">
                 <div class="max-w-[75%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200 shadow">
-                    <span class="typing"><span class="typing-dot" ${dotStyle}></span><span class="typing-dot" ${dotStyle}></span><span class="typing-dot" ${dotStyle}></span></span>
+                    <span class="thinking"><span class="thinking-dot" ${dotStyle}></span><span class="thinking-dot" ${dotStyle}></span><span class="thinking-dot" ${dotStyle}></span></span>
                 </div>
             </div>
         `;
@@ -354,8 +416,8 @@ $(function () {
         $messages.scrollTop($messages.prop('scrollHeight'));
     }
 
-    function hideTypingIndicator() {
-        $('#typing-indicator').remove();
+    function hideThinkingIndicator() {
+        $('#thinking-indicator').remove();
     }
 
     function scrollToLastUserMessage() {
@@ -423,7 +485,7 @@ $(function () {
     $('#chat-close').on('click', () => toggleWindow(false));
     $('#chat-resize').on('click', () => toggleResize());
     $('#chat-clear').on('click', () => {
-        if (confirm('Are you sure you want to clear the chat history? This will cause the AI to forget your conversation.')) {
+        if (confirm('Are you sure you want to clear the chat history? The AI will forget your conversation.')) {
             clearChatHistory();
         }
     });
@@ -442,7 +504,7 @@ $(function () {
 
         // Delay typing indicator by 1 second (but don't delay the API call)
         let typingTimeout = setTimeout(() => {
-            showTypingIndicator();
+            showThinkingIndicator();
         }, 1000);
 
         // Send to n8n webhook via PHP
@@ -453,18 +515,15 @@ $(function () {
             data: JSON.stringify({ message: text, chat_id: chatId }),
             success: function(response) {
                 clearTimeout(typingTimeout);
-                hideTypingIndicator();
-                appendMessage({ text: response.response, role: 'assistant', scroll: false });
-                scrollToLastUserMessage();
+                hideThinkingIndicator();
+                appendMessage({ text: response.response, role: 'assistant', scroll: false, typing: true });
                 isWaitingForResponse = false;
                 $sendBtn.prop('disabled', false);
             },
             error: function(xhr, status, error) {
                 clearTimeout(typingTimeout);
-                hideTypingIndicator();
-                // Log technical details for debugging
+                hideThinkingIndicator();
                 console.error('Chat API error:', { status, error, response: xhr.responseJSON });
-                // Show generic user-friendly message
                 showErrorSnackbar('An error occurred, please try again.');
                 scrollToLastUserMessage();
                 isWaitingForResponse = false;
