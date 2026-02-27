@@ -150,19 +150,19 @@
              max-height: 120px !important;
          }
 
-         /* Mobile full-screen expanded chat */
-          @media (max-width: 640px) {
-              .chat-expanded {
-                  top: 0 !important;
-                  bottom: 0 !important;
-                  height: 100vh !important;
-                  border-radius: 0 !important;
-                  /* Width remains at natural w-[92vw], centered by auto margins from JS */
-              }
-              .chat-expanded #chat-messages {
-                  height: calc(100vh - 140px) !important;
-              }
-          }
+          /* Mobile full-screen expanded chat */
+           @media (max-width: 640px) {
+               .chat-expanded {
+                   top: 0 !important;
+                   bottom: 0 !important;
+                   height: 100dvh !important;
+                   border-radius: 0 !important;
+                   /* Width remains at natural w-[92vw], centered by auto margins from JS */
+               }
+               .chat-expanded #chat-messages {
+                   height: calc(100dvh - 140px) !important;
+               }
+           }
 
         /* Error snackbar transition */
         #error-snackbar {

@@ -211,6 +211,38 @@ $(function () {
                $fab.removeClass('fab-mobile-hidden');
            }
        }
+       
+       // Handle mobile keyboard appearance
+       function handleKeyboard() {
+           const isMobile = window.innerWidth < 640;
+           if (!isMobile) return;
+           
+           const viewport = window.visualViewport;
+           if (!viewport) return;
+           
+           const keyboardHeight = window.innerHeight - viewport.height;
+           const availableHeight = viewport.height;
+           
+           if (keyboardHeight > 0) {
+               // Keyboard is visible - set fixed height based on available viewport
+               $window.css({
+                   'height': availableHeight + 'px',
+                   'top': '',
+                   'bottom': '0'
+               });
+           } else {
+               // Keyboard hidden - restore full height
+               $window.css({
+                   'height': '100dvh',
+                   'top': '0',
+                   'bottom': ''
+               });
+           }
+       }
+       
+       if (window.visualViewport) {
+           window.visualViewport.addEventListener('resize', handleKeyboard);
+       }
     
     // Initial positioning
     updatePositioning();
