@@ -24,11 +24,14 @@ $(function () {
     // FAB button subtitle text
     const FAB_SUBTITLE = 'AI Assistant';
     
+    // Enable/disable pulsing animation (true/false)
+    const FAB_PULSE_ENABLED = true;
+    
     // Chat header label text
     const HEADER_LABEL = 'S.A.M (Simply Ask Me)';
     
     // User chat bubble color (hex)
-    const USER_BUBBLE_COLOR = '#6e5e5e';
+    const USER_BUBBLE_COLOR = '#3d2e2e';
     
     // User chat text color (hex)
     const USER_TEXT_COLOR = '#ffffff';
@@ -63,6 +66,9 @@ $(function () {
     $('#chat-skeleton').hide();
     $('#chat-content').removeClass('hidden').show();
     $fab.css('visibility', 'visible');
+    if (FAB_PULSE_ENABLED) {
+        $fab.addClass('chat-fab-pulse');
+    }
     $window.css('visibility', 'visible');
     
     // Store typing indicator color (default tailwind:indigo-500)
@@ -126,6 +132,11 @@ $(function () {
     
     // Apply colors
     applyChatColor(CHAT_COLOR);
+    
+    // Apply pulse color using already-converted RGB (lighter/transparent)
+    if (FAB_PULSE_ENABLED) {
+        document.documentElement.style.setProperty('--chat-pulse-color', `rgba(${typingDotRgb}, 0.4)`);
+    }
     
      // Positioning function for desktop/mobile responsive offsets
      function updatePositioning() {
@@ -303,8 +314,8 @@ $(function () {
         const { text, role } = message;
         const isUser = role === 'user';
         const avatar = isUser
-            ? '<img src="img/user.png" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover">'
-            : '<img src="img/bot.png" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover">';
+            ? '<img src="img/user.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">'
+            : '<img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">';
 
         const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
         const bubbleClasses = isUser
@@ -333,7 +344,7 @@ $(function () {
         const dotStyle = `style="background-color: rgb(${typingDotRgb})"`;
         const content = `
             <div class="mb-3 flex gap-2" id="typing-indicator">
-                <img src="img/bot.png" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover">
+                <img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">
                 <div class="max-w-[75%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200 shadow">
                     <span class="typing"><span class="typing-dot" ${dotStyle}></span><span class="typing-dot" ${dotStyle}></span><span class="typing-dot" ${dotStyle}></span></span>
                 </div>
@@ -370,11 +381,11 @@ $(function () {
         if (isExpanded) {
             // Show minimize icon when expanded
             resizeIcon.html('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>');
-            $('#chat-resize').attr('title', 'Make chat smaller');
+            $('#chat-resize').attr('data-tooltip', 'Make chat smaller');
         } else {
             // Show expand icon when normal
             resizeIcon.html('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>');
-            $('#chat-resize').attr('title', 'Make chat bigger');
+            $('#chat-resize').attr('data-tooltip', 'Make chat bigger');
         }
         
         // Scroll to bottom after resize
@@ -405,11 +416,14 @@ $(function () {
      $errorDismiss.on('click', hideErrorSnackbar);
 
     // Toggle handlers
-    $fab.on('click', () => toggleWindow());
+    $fab.on('click', () => {
+        $fab.removeClass('chat-fab-pulse');
+        toggleWindow();
+    });
     $('#chat-close').on('click', () => toggleWindow(false));
     $('#chat-resize').on('click', () => toggleResize());
     $('#chat-clear').on('click', () => {
-        if (confirm('Are you sure you want to clear the chat history?')) {
+        if (confirm('Are you sure you want to clear the chat history? This will cause the AI to forget your conversation.')) {
             clearChatHistory();
         }
     });

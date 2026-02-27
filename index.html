@@ -18,6 +18,27 @@
         /* Simple scrollbar styling for message area */
         .nice-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
         .nice-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(100, 116, 139, 0.5); border-radius: 9999px; }
+        /* CSS Tooltip */
+        .tooltip { position: relative; }
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: #1e293b;
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            margin-bottom: 6px;
+            z-index: 50;
+        }
+        .tooltip:hover::after { opacity: 1; visibility: visible; }
         .nice-scrollbar::-webkit-scrollbar-track { background-color: transparent; }
         /* Typing indicator dots */
         .typing {
@@ -40,6 +61,15 @@
             40% { transform: translateY(-3px); opacity: 1; }
         }
         
+        /* Chat FAB pulsing animation */
+        @keyframes chat-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--chat-pulse-color, rgba(99, 102, 241, 0.7)); }
+            50% { box-shadow: 0 0 0 15px var(--chat-pulse-color, rgba(99, 102, 241, 0)); }
+        }
+        .chat-fab-pulse {
+            animation: chat-pulse 2s infinite;
+        }
+        
         /* Formatted content styles */
         .formatted-content h1, .formatted-content h2, .formatted-content h3 {
             line-height: 1.4;
@@ -60,10 +90,15 @@
         .formatted-content ul, .formatted-content ol {
             margin: 0.5rem 0;
             padding-left: 1.5rem;
+            list-style: disc;
+        }
+        .formatted-content ol {
+            list-style: decimal;
         }
         .formatted-content li {
             margin-bottom: 0.25rem;
             line-height: 1.4;
+            color: inherit;
         }
         .formatted-content br {
             line-height: 1.2;
@@ -242,13 +277,13 @@
             </div>
         </div>
             <div class="flex items-center gap-1">
-                <button id="chat-clear" class="rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40" title="Clear chat history">
+                <button id="chat-clear" class="tooltip rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40" data-tooltip="Clear chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>
                 </button>
-                <button id="chat-resize" class="rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40 hidden sm:block" title="Make chat bigger">
+                <button id="chat-resize" class="tooltip rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40 hidden sm:block" data-tooltip="Make chat bigger">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
                 </button>
-                <button id="chat-close" class="rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40" title="Close">
+                <button id="chat-close" class="tooltip rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40" data-tooltip="Close chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -259,11 +294,11 @@
 
         <!-- Composer -->
         <form id="chat-form" class="flex items-end gap-2 border-t border-slate-200 bg-white px-3 py-3">
-            <div class="relative flex-1">
+            <div class="relative flex-1 self-center">
                 <textarea id="chat-input" rows="1" placeholder="Type a message..." class="nice-scrollbar max-h-32 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200"></textarea>
                  <div class="pointer-events-none absolute bottom-2 right-3 text-xs text-slate-400 hidden sm:block">Press Enter ↵</div>
             </div>
-            <button id="chat-send" type="submit" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600">
+            <button id="chat-send" type="submit" class="inline-flex self-start items-center justify-center rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600 mt-0.5">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                 Send
             </button>
