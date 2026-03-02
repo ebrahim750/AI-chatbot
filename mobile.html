@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>S.A.M - Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; 
+            overscroll-behavior: none;
+        }
+        .nice-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+        .nice-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(100, 116, 139, 0.5); border-radius: 9999px; }
+        .nice-scrollbar::-webkit-scrollbar-track { background-color: transparent; }
+        
+        /* Tooltip */
+        .tooltip { position: relative; }
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: #1e293b;
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            margin-bottom: 6px;
+            z-index: 50;
+        }
+        .tooltip:hover::after { opacity: 1; visibility: visible; }
+        
+        /* Thinking indicator */
+        .thinking { display: inline-flex; align-items: center; gap: 6px; }
+        .thinking-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 9999px;
+            background-color: rgb(99 102 241);
+            opacity: 0.2;
+            animation: thinking-pulse 1.5s infinite ease-in-out;
+        }
+        .thinking-dot:nth-child(1) { animation-delay: 0s; }
+        .thinking-dot:nth-child(2) { animation-delay: 0.3s; }
+        .thinking-dot:nth-child(3) { animation-delay: 0.6s; }
+        @keyframes thinking-pulse {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Formatted content */
+        .formatted-content h1, .formatted-content h2, .formatted-content h3 { line-height: 1.4; }
+        .formatted-content h1 { font-weight: 700; font-size: 1.25rem; margin-top: 1rem; margin-bottom: 0.75rem; }
+        .formatted-content h2 { font-weight: 600; font-size: 1.125rem; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .formatted-content h3 { font-weight: 600; font-size: 1rem; margin-top: 0.75rem; margin-bottom: 0.5rem; }
+        .formatted-content p { line-height: 1.5; margin-bottom: 0.5rem; }
+        .formatted-content strong { font-weight: 600; }
+        .formatted-content em { font-style: italic; }
+        .formatted-content ul, .formatted-content ol { margin: 0.5rem 0; padding-left: 1.5rem; list-style: disc; }
+        .formatted-content ol { list-style: decimal; }
+        .formatted-content li { margin-bottom: 0.25rem; line-height: 1.4; color: inherit; }
+        .formatted-content br { line-height: 1.2; }
+        .formatted-content table { border-collapse: collapse; margin: 0.75rem 0; width: 100%; overflow-x: auto; display: block; }
+        .formatted-content th, .formatted-content td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; text-align: left; }
+        .formatted-content th { font-weight: 600; background-color: #f8fafc; }
+        .formatted-content tr:nth-child(even) td { background-color: #f8fafc; }
+        .formatted-content a { color: inherit; opacity: 0.8; text-decoration: underline; word-break: break-all; }
+        .formatted-content a:hover { opacity: 1; }
+        
+        /* Chat window */
+        #chat-container {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Error snackbar */
+        #error-snackbar {
+            transform: translateY(-100%);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        #error-snackbar.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="chat-container">
+        <!-- Header -->
+        <div class="flex items-center justify-between relative bg-indigo-600 px-4 py-3 text-white flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="chat-back" class="p-1 -ml-1 hover:bg-white/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <p id="header-label" class="text-sm leading-tight opacity-90"></p>
+                        <p id="header-subtitle" class="text-xs leading-tight opacity-70"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="chat-clear" class="tooltip rounded-lg p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40" data-tooltip="Clear chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>
+                </button>
+            </div>
+            <!-- Error Snackbar -->
+            <div id="error-snackbar" class="hidden absolute top-full left-0 right-0 z-50 bg-red-500 text-white px-4 py-3 text-sm shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span id="error-message" class="font-medium"></span>
+                    </div>
+                    <button id="error-dismiss" class="ml-4 p-1 hover:bg-red-600 rounded transition-colors" title="Dismiss">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="chat-messages" class="nice-scrollbar flex-1 overflow-y-auto bg-slate-50 px-3 py-3 min-h-0"></div>
+
+        <!-- Composer -->
+        <form id="chat-form" class="flex-shrink-0 flex items-end gap-2 border-t border-slate-200 bg-white px-3 py-3">
+            <div class="relative flex-1 self-center">
+                <textarea id="chat-input" rows="1" placeholder="Type a message..." class="nice-scrollbar max-h-32 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200"></textarea>
+            </div>
+            <button id="chat-send" type="submit" class="inline-flex self-start items-center justify-center rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Send
+            </button>
+        </form>
+    </div>
+
+    <script>
+    $(function () {
+        const CHAT_COLOR = '#dd3a0a';
+        const HEADER_LABEL = 'S.A.M (Simply Ask Me)';
+        const FAB_SUBTITLE = 'AI Assistant';
+        const USER_BUBBLE_COLOR = '#3d2e2e';
+        const USER_TEXT_COLOR = '#ffffff';
+        const WELCOME_MESSAGE = 'Hi! I am SAM, how may I be of assistance?\n Have any questions about SimplyIT?\n Or would you like to book a free audit for your business?';
+        
+        const TYPING_ANIMATION_ENABLED = true;
+        const TYPING_SPEED = 15;
+
+        const $input = $('#chat-input');
+        const $messages = $('#chat-messages');
+        const $form = $('#chat-form');
+        const $snackbar = $('#error-snackbar');
+        const $errorMessage = $('#error-message');
+        const $errorDismiss = $('#error-dismiss');
+        const $sendBtn = $('#chat-send');
+        
+        let isWaitingForResponse = false;
+        let typingDotRgb = '99, 102, 241';
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function applyChatColor(color) {
+            const rgb = hexToRgb(color);
+            if (!rgb) return;
+            const rgbString = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+            typingDotRgb = rgbString;
+            
+            $('.bg-indigo-600').css('background-color', color);
+            $('#chat-send').css('background-color', color);
+            $('#chat-send').hover(function() {
+                $(this).css('background-color', `rgba(${rgbString}, 0.9)`);
+            }, function() {
+                $(this).css('background-color', color);
+            });
+            
+            $input.on('focus', function() {
+                $(this).css('border-color', color);
+                $(this).css('box-shadow', `0 0 0 3px rgba(${rgbString}, 0.2)`);
+            });
+            $input.on('blur', function() {
+                $(this).css('border-color', '#e2e8f0');
+                $(this).css('box-shadow', '0 1px 2px 0 rgb(0 0 0 / 0.05)');
+            });
+        }
+
+        applyChatColor(CHAT_COLOR);
+        
+        $('#header-label').text(HEADER_LABEL);
+        $('#header-subtitle').text(FAB_SUBTITLE);
+
+        function generateChatId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            const array = new Uint32Array(32);
+            window.crypto.getRandomValues(array);
+            for (let i = 0; i < 32; i++) {
+                result += chars[array[i] % chars.length];
+            }
+            return result;
+        }
+
+        let chatId = localStorage.getItem('chatId') || generateChatId();
+        localStorage.setItem('chatId', chatId);
+
+        const CHAT_STORAGE_KEY = 'chatbot_history';
+        let chatHistory = [];
+
+        function saveChatHistory() {
+            localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
+        }
+
+        function loadChatHistory() {
+            const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+            if (saved) {
+                try {
+                    chatHistory = JSON.parse(saved);
+                    renderChatHistory();
+                } catch (e) {
+                    console.error('Failed to load chat history:', e);
+                    chatHistory = [];
+                }
+            }
+        }
+
+        function renderChatHistory() {
+            $messages.empty();
+            chatHistory.forEach(message => {
+                appendMessageToDOM(message, false);
+            });
+            scrollToBottom();
+        }
+
+        function clearChatHistory() {
+            chatId = generateChatId();
+            localStorage.setItem('chatId', chatId);
+            chatHistory = [];
+            localStorage.removeItem(CHAT_STORAGE_KEY);
+            $messages.empty();
+            appendMessage({ text: WELCOME_MESSAGE, role: 'assistant' });
+        }
+
+        function scrollToBottom() {
+            $messages.scrollTop($messages.prop('scrollHeight'));
+        }
+
+        function appendMessage({ text, role, scroll = true, typing = false }) {
+            const message = { text, role, timestamp: Date.now() };
+            chatHistory.push(message);
+            saveChatHistory();
+            
+            if (typing && TYPING_ANIMATION_ENABLED && role === 'assistant') {
+                appendMessageWithTyping(message, scroll);
+            } else {
+                appendMessageToDOM(message, scroll);
+            }
+        }
+
+        const markdownConverter = new showdown.Converter({
+            tables: true,
+            openLinksInNewWindow: true,
+            linkTarget: '_blank'
+        });
+
+        function formatMarkdown(text) {
+            return markdownConverter.makeHtml(text);
+        }
+
+        function appendMessageToDOM(message, scroll = true) {
+            const { text, role } = message;
+            const isUser = role === 'user';
+            const avatar = isUser
+                ? '<img src="img/user.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">'
+                : '<img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">';
+
+            const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
+            const bubbleClasses = isUser
+                ? 'rounded-br-sm'
+                : 'bg-white text-slate-800 ring-1 ring-slate-200 rounded-tl-sm';
+
+            const containerClasses = isUser ? 'justify-end' : '';
+            const displayText = isUser ? $('<div>').text(text).html().replace(/\n/g, '<br>') : formatMarkdown(text);
+            
+            const content = `
+                <div class="mb-3 flex flex-col ${containerClasses}">
+                    <div class="flex gap-2 ${isUser ? 'justify-end' : ''}">
+                        ${isUser ? '' : avatar}
+                        <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}">${displayText}</div>
+                        ${isUser ? avatar : ''}
+                    </div>
+                </div>
+            `;
+            $messages.append(content);
+            if (scroll) scrollToBottom();
+        }
+
+        function appendMessageWithTyping(message, scroll = true) {
+            const { text, role } = message;
+            const isUser = role === 'user';
+            const avatar = isUser
+                ? '<img src="img/user.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">'
+                : '<img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">';
+
+            const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
+            const bubbleClasses = isUser
+                ? 'rounded-br-sm'
+                : 'bg-white text-slate-800 ring-1 ring-slate-200 rounded-tl-sm';
+
+            const containerClasses = isUser ? 'justify-end' : '';
+            
+            const content = `
+                <div class="mb-3 flex flex-col ${containerClasses}">
+                    <div class="flex gap-2 ${isUser ? 'justify-end' : ''}">
+                        ${isUser ? '' : avatar}
+                        <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}"><span class="typing-text"></span></div>
+                        ${isUser ? avatar : ''}
+                    </div>
+                </div>
+            `;
+            $messages.append(content);
+            
+            const $typingEl = $messages.find('.typing-text').last();
+            let userScrolledUp = false;
+            
+            $messages.on('scroll', function() {
+                const maxScroll = $(this).prop('scrollHeight') - $(this).outerHeight();
+                const isNearBottom = $(this).scrollTop() >= maxScroll - 10;
+                if (!isNearBottom) {
+                    userScrolledUp = true;
+                } else {
+                    userScrolledUp = false;
+                }
+            });
+            
+            function typeNextChar(index) {
+                if (index < text.length) {
+                    const partialText = text.substring(0, index + 1);
+                    const partialHtml = formatMarkdown(partialText);
+                    $typingEl.html(partialHtml);
+                    
+                    if (!userScrolledUp) {
+                        scrollToBottom();
+                    }
+                    setTimeout(() => typeNextChar(index + 1), TYPING_SPEED);
+                }
+            }
+            
+            typeNextChar(0);
+        }
+
+        function showThinkingIndicator() {
+            const dotStyle = `style="background-color: rgb(${typingDotRgb})"`;
+            const content = `
+                <div class="mb-3 flex gap-2" id="thinking-indicator">
+                    <img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">
+                    <div class="max-w-[75%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200 shadow">
+                        <span class="thinking"><span class="thinking-dot" ${dotStyle}></span><span class="thinking-dot" ${dotStyle}></span><span class="thinking-dot" ${dotStyle}></span></span>
+                    </div>
+                </div>
+            `;
+            $messages.append(content);
+            scrollToBottom();
+        }
+
+        function hideThinkingIndicator() {
+            $('#thinking-indicator').remove();
+        }
+
+        function showErrorSnackbar(message) {
+            $errorMessage.text(message);
+            $snackbar.removeClass('hidden').addClass('show');
+            setTimeout(() => hideErrorSnackbar(), 30000);
+        }
+
+        function hideErrorSnackbar() {
+            $snackbar.removeClass('show');
+            setTimeout(() => $snackbar.addClass('hidden'), 300);
+        }
+
+        $errorDismiss.on('click', hideErrorSnackbar);
+
+        // Back button - go to previous page or home
+        $('#chat-back').on('click', function() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        });
+
+        // Clear chat
+        $('#chat-clear').on('click', function() {
+            if (confirm('Are you sure you want to clear the chat history? This will cause the AI to forget your conversation.')) {
+                clearChatHistory();
+            }
+        });
+
+        // Submit handler
+        $form.on('submit', function(e) {
+            e.preventDefault();
+            const text = $input.val().trim();
+            if (!text || isWaitingForResponse) return;
+            sendMessage(text);
+        });
+
+        function sendMessage(text) {
+            isWaitingForResponse = true;
+            $sendBtn.prop('disabled', true);
+            $input.val('');
+
+            appendMessage({ text, role: 'user' });
+
+            let typingTimeout = setTimeout(() => {
+                showThinkingIndicator();
+            }, 1000);
+
+            $.ajax({
+                url: 'api.php',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ message: text, chat_id: chatId }),
+                success: function(response) {
+                    clearTimeout(typingTimeout);
+                    hideThinkingIndicator();
+                    hideErrorSnackbar();
+                    appendMessage({ text: response.response, role: 'assistant', scroll: false, typing: true });
+                    isWaitingForResponse = false;
+                    $sendBtn.prop('disabled', false);
+                },
+                error: function(xhr, status, error) {
+                    clearTimeout(typingTimeout);
+                    hideThinkingIndicator();
+                    console.error('Chat API error:', { status, error, response: xhr.responseJSON });
+                    showErrorSnackbar('An error occurred, please try again.');
+                    
+                    const $allMessages = $messages.children('.mb-3');
+                    const $lastUserMsgContainer = $allMessages.last();
+                    
+                    if ($lastUserMsgContainer.length) {
+                        $lastUserMsgContainer.find('.message-failed').remove();
+                        const failedHtml = `<div class="message-failed mt-1 text-xs text-red-500 cursor-pointer hover:underline" style="text-align: right;">Message failed to send. <span class="text-red-600 font-medium">Click to resend</span></div>`;
+                        $lastUserMsgContainer.append(failedHtml);
+                        $lastUserMsgContainer.find('.message-failed').on('click', function(e) {
+                            e.stopPropagation();
+                            $(this).remove();
+                            sendMessage(text);
+                        });
+                    }
+                    
+                    isWaitingForResponse = false;
+                    $sendBtn.prop('disabled', false);
+                }
+            });
+        }
+
+        // Enter to send, Shift+Enter for newline
+        $input.on('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey && !isWaitingForResponse) {
+                e.preventDefault();
+                $form.trigger('submit');
+            }
+        });
+
+        // Initialize
+        loadChatHistory();
+        if (chatHistory.length === 0) {
+            appendMessage({ text: WELCOME_MESSAGE, role: 'assistant' });
+        }
+    });
+    </script>
+</body>
+</html>

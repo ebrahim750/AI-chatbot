@@ -153,28 +153,35 @@ $(function () {
           // Calculate window bottom offset
           let winVOffset = fabVOffset + gap;
           
-          // On mobile, if window is open (FAB hidden), set window bottom to 0 (no gap)
-          if (isMobile && $window.hasClass('opacity-100')) {
-              winVOffset = 0;
-          }
-          
           const side = CHAT_POSITION; // 'left' or 'right'
           
           // Apply to chat window
           if (isMobile) {
-              // On mobile, center horizontally with auto margins
-              $window.css({
-                  left: '0',
-                   right: '0',
-                   marginLeft: 'auto',
-                   marginRight: 'auto',
-                   bottom: winVOffset + 'px'
-               });
+              // On mobile, always full screen when open
+              if ($window.hasClass('opacity-100')) {
+                  $window.css({
+                      left: '0',
+                      right: '0',
+                      top: '0',
+                      bottom: '0',
+                      width: '100vw',
+                      height: '100dvh',
+                      marginLeft: '0',
+                      marginRight: '0',
+                      borderRadius: '0'
+                  });
+              }
           } else {
               // On desktop, position based on config
               $window.css({
                   [side]: hOffset + 'px',
-                  bottom: winVOffset + 'px'
+                  bottom: winVOffset + 'px',
+                  left: '',
+                  right: '',
+                  top: '',
+                  width: '',
+                  height: '',
+                  borderRadius: ''
               });
           }
           
@@ -223,19 +230,27 @@ $(function () {
            const keyboardHeight = window.innerHeight - viewport.height;
            const availableHeight = viewport.height;
            
+           // Buffer for input field (accounts for input fixed height when keyboard is open)
+           const inputBuffer = 10;
+           
            if (keyboardHeight > 0) {
-               // Keyboard is visible - set fixed height based on available viewport
+               // Keyboard is visible - resize to fit above keyboard with buffer
+               const adjustedHeight = availableHeight - inputBuffer;
                $window.css({
-                   'height': availableHeight + 'px',
-                   'top': '',
+                   'height': adjustedHeight + 'px',
+                   'top': '0',
                    'bottom': '0'
                });
+               // Scroll input into view
+               setTimeout(() => {
+                   $input[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+               }, 100);
            } else {
                // Keyboard hidden - restore full height
                $window.css({
                    'height': '100dvh',
                    'top': '0',
-                   'bottom': ''
+                   'bottom': '0'
                });
            }
        }
@@ -306,21 +321,36 @@ $(function () {
     }
 
      function toggleWindow(show) {
+         const isMobile = window.innerWidth < 640;
+         
          if (show === true) {
              $window.removeClass('opacity-0 scale-95 pointer-events-none');
              $window.addClass('opacity-100 scale-100 pointer-events-auto');
+             if (isMobile) {
+                 $window.addClass('chat-fullscreen');
+                 // Prevent body scroll on mobile
+                 $('body').css('overflow', 'hidden');
+             }
              setTimeout(() => $input.trigger('focus'), 300);
          } else if (show === false) {
              $window.removeClass('opacity-100 scale-100 pointer-events-auto');
              $window.addClass('opacity-0 scale-95 pointer-events-none');
+             $window.removeClass('chat-fullscreen');
+             $('body').css('overflow', '');
          } else {
              if ($window.hasClass('opacity-0')) {
                  $window.removeClass('opacity-0 scale-95 pointer-events-none');
                  $window.addClass('opacity-100 scale-100 pointer-events-auto');
+                 if (isMobile) {
+                     $window.addClass('chat-fullscreen');
+                     $('body').css('overflow', 'hidden');
+                 }
                  setTimeout(() => $input.trigger('focus'), 300);
              } else {
                  $window.removeClass('opacity-100 scale-100 pointer-events-auto');
                  $window.addClass('opacity-0 scale-95 pointer-events-none');
+                 $window.removeClass('chat-fullscreen');
+                 $('body').css('overflow', '');
              }
          }
          // Update FAB visibility and positioning after toggle
