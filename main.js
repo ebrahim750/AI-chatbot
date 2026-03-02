@@ -404,6 +404,17 @@ $(function () {
         return markdownConverter.makeHtml(text);
     }
 
+    function markMessageFailed($messageEl, text) {
+        $messageEl.find('.message-failed').remove();
+        const failedHtml = `<div class="message-failed mt-1 text-xs text-red-500 cursor-pointer hover:underline" style="text-align: right;">Message failed to send. <span class="text-red-600 font-medium">Click to resend</span></div>`;
+        $messageEl.append(failedHtml);
+        $messageEl.find('.message-failed').on('click', function(e) {
+            e.stopPropagation();
+            $(this).remove();
+            sendMessage(text);
+        });
+    }
+
     function appendMessageToDOM(message, scroll = true) {
         const { text, role } = message;
         const isUser = role === 'user';
@@ -422,10 +433,12 @@ $(function () {
         const displayText = isUser ? $('<div>').text(text).html().replace(/\n/g, '<br>') : formatMarkdown(text);
         
         const content = `
-            <div class="mb-3 flex gap-2 ${containerClasses}">
-                ${isUser ? '' : avatar}
-                <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}">${displayText}</div>
-                ${isUser ? avatar : ''}
+            <div class="mb-3 flex flex-col ${containerClasses}">
+                <div class="flex gap-2 ${isUser ? 'justify-end' : ''}">
+                    ${isUser ? '' : avatar}
+                    <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}">${displayText}</div>
+                    ${isUser ? avatar : ''}
+                </div>
             </div>
         `;
         $messages.append(content);
@@ -528,18 +541,21 @@ $(function () {
         const text = $input.val().trim();
         if (!text || isWaitingForResponse) return;
 
+        sendMessage(text);
+    });
+
+    function sendMessage(text) {
         isWaitingForResponse = true;
         $sendBtn.prop('disabled', true);
+        $input.val(text);
 
         appendMessage({ text, role: 'user' });
         $input.val('');
 
-        // Delay typing indicator by 1 second (but don't delay the API call)
         let typingTimeout = setTimeout(() => {
             showThinkingIndicator();
         }, 1000);
 
-        // Send to n8n webhook via PHP
         $.ajax({
             url: 'api.php',
             method: 'POST',
@@ -548,6 +564,7 @@ $(function () {
             success: function(response) {
                 clearTimeout(typingTimeout);
                 hideThinkingIndicator();
+                hideErrorSnackbar();
                 appendMessage({ text: response.response, role: 'assistant', scroll: false, typing: true });
                 isWaitingForResponse = false;
                 $sendBtn.prop('disabled', false);
@@ -557,12 +574,28 @@ $(function () {
                 hideThinkingIndicator();
                 console.error('Chat API error:', { status, error, response: xhr.responseJSON });
                 showErrorSnackbar('An error occurred, please try again.');
-                scrollToLastUserMessage();
+                
+                const $allMessages = $messages.children('.mb-3');
+                const $lastUserMsgContainer = $allMessages.last();
+                const $lastUserMsg = $lastUserMsgContainer.find('.justify-end').last();
+                
+                if ($lastUserMsg.length) {
+                    $lastUserMsgContainer.find('.message-failed').remove();
+                    const failedHtml = `<div class="message-failed mt-1 text-xs text-red-500 cursor-pointer hover:underline" style="text-align: right;">Message failed to send. <span class="text-red-600 font-medium">Click to resend</span></div>`;
+                    $lastUserMsgContainer.append(failedHtml);
+                    $lastUserMsgContainer.find('.message-failed').on('click', function(e) {
+                        e.stopPropagation();
+                        $(this).remove();
+                        sendMessage(text);
+                    });
+                    scrollToLastUserMessage();
+                }
+                
                 isWaitingForResponse = false;
                 $sendBtn.prop('disabled', false);
             }
         });
-    });
+    }
 
     // Enter to send, Shift+Enter for newline
     $input.on('keydown', function (e) {
