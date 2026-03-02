@@ -5,10 +5,28 @@ $webhookTestUrl = 'https://ai-backend.simplyask.live/webhook-test/facd547d-5e9b-
 $webhookProdUrl = 'https://ai-backend.simplyask.live/webhook/facd547d-5e9b-4f70-9970-ac17be2823b1';
 $prod = true;
 
+$logFile = __DIR__ . '/error.log';
+
+function logError($message, $details = []) {
+    global $logFile;
+    $timestamp = date('Y-m-d H:i:s');
+    $logEntry = "[$timestamp] $message";
+    if (!empty($details)) {
+        $logEntry .= " | Details: " . json_encode($details);
+    }
+    $logEntry .= "\n";
+    file_put_contents($logFile, $logEntry, FILE_APPEND);
+}
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -17,6 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    logError('Invalid JSON input', ['json_error' => json_last_error_msg(), 'raw_input' => file_get_contents('php://input')]);
+    echo json_encode(['error' => 'Invalid request']);
+    exit;
+}
 
 if (!isset($input['message']) || !isset($input['chat_id']) || empty(trim($input['message']))) {
     http_response_code(400);
@@ -33,24 +58,28 @@ $ch = curl_init($webhookUrl);
 curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['message' => $message, 'chat_id' => $chat_id]));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/json'
 ]);
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$error = curl_error($ch);
+$curlError = curl_error($ch);
 curl_close($ch);
 
-if ($error) {
+if ($curlError) {
     http_response_code(500);
-    echo json_encode(['error' => 'Failed to connect to webhook: ' . $error]);
+    logError('cURL error', ['curl_error' => $curlError, 'http_code' => $httpCode]);
+    echo json_encode(['error' => 'Failed to connect to service']);
     exit;
 }
 
 if ($httpCode < 200 || $httpCode >= 300) {
     http_response_code($httpCode);
-    echo json_encode(['error' => 'Webhook returned error: ' . $response]);
+    logError('Webhook error', ['http_code' => $httpCode, 'response' => $response]);
+    echo json_encode(['error' => 'Service temporarily unavailable']);
     exit;
 }
 
@@ -62,7 +91,8 @@ if (!isset($responseData['response'])) {
         exit;
     }
     http_response_code(500);
-    echo json_encode(['error' => 'Invalid response format from webhook']);
+    logError('Invalid response format', ['response' => $response]);
+    echo json_encode(['error' => 'Invalid response from service']);
     exit;
 }
 
