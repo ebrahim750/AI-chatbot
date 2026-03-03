@@ -156,6 +156,7 @@ $(function () {
      // Positioning function for desktop/mobile responsive offsets
      function updatePositioning() {
          const isMobile = window.innerWidth < 640; // sm breakpoint
+         const windowEl = $window[0];
          const hOffset = isMobile ? CHAT_HORIZONTAL_OFFSET_MOBILE : CHAT_HORIZONTAL_OFFSET_DESKTOP;
          const fabVOffset = isMobile ? CHAT_FAB_VERTICAL_OFFSET_MOBILE : CHAT_FAB_VERTICAL_OFFSET_DESKTOP;
          const gap = isMobile ? CHAT_WINDOW_FAB_GAP_MOBILE : CHAT_WINDOW_FAB_GAP_DESKTOP;
@@ -166,6 +167,9 @@ $(function () {
           
           // Apply to chat window
           if (isMobile) {
+              if (windowEl) {
+                  windowEl.style.setProperty('transition-duration', '0ms');
+              }
               // On mobile, always full screen when open
               if ($window.hasClass('opacity-100')) {
                   $window.css({
@@ -182,6 +186,9 @@ $(function () {
                   handleKeyboard();
               }
           } else {
+              if (windowEl) {
+                  windowEl.style.removeProperty('transition-duration');
+              }
               clearMobileViewportOverrides();
               // On desktop, position based on config
               $window.css({
@@ -262,6 +269,12 @@ $(function () {
     // Update on window resize
     $(window).on('resize', updatePositioning);
 
+    function focusComposer() {
+        const inputEl = $input[0];
+        if (!inputEl) return;
+        inputEl.focus({ preventScroll: true });
+    }
+
     function generateChatId() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
@@ -319,36 +332,39 @@ $(function () {
 
      function toggleWindow(show) {
          const isMobile = window.innerWidth < 640;
+         const openClass = isMobile ? 'opacity-100 pointer-events-auto' : 'opacity-100 scale-100 pointer-events-auto';
+         const closedClass = isMobile ? 'opacity-0 pointer-events-none' : 'opacity-0 scale-95 pointer-events-none';
+         $window.removeClass('scale-95 scale-100');
          
          if (show === true) {
-             $window.removeClass('opacity-0 scale-95 pointer-events-none');
-             $window.addClass('opacity-100 scale-100 pointer-events-auto');
+             $window.removeClass(closedClass);
+             $window.addClass(openClass);
              if (isMobile) {
                  $window.addClass('chat-fullscreen');
                  // Prevent body scroll on mobile
                  $('body').css('overflow', 'hidden');
                  setTimeout(handleKeyboard, 0);
              }
-             setTimeout(() => $input.trigger('focus'), 300);
+             focusComposer();
          } else if (show === false) {
-             $window.removeClass('opacity-100 scale-100 pointer-events-auto');
-             $window.addClass('opacity-0 scale-95 pointer-events-none');
+             $window.removeClass(openClass);
+             $window.addClass(closedClass);
              $window.removeClass('chat-fullscreen');
              clearMobileViewportOverrides();
              $('body').css('overflow', '');
          } else {
              if ($window.hasClass('opacity-0')) {
-                 $window.removeClass('opacity-0 scale-95 pointer-events-none');
-                 $window.addClass('opacity-100 scale-100 pointer-events-auto');
+                 $window.removeClass(closedClass);
+                 $window.addClass(openClass);
                  if (isMobile) {
                      $window.addClass('chat-fullscreen');
                      $('body').css('overflow', 'hidden');
                      setTimeout(handleKeyboard, 0);
                  }
-                 setTimeout(() => $input.trigger('focus'), 300);
+                 focusComposer();
              } else {
-                 $window.removeClass('opacity-100 scale-100 pointer-events-auto');
-                 $window.addClass('opacity-0 scale-95 pointer-events-none');
+                 $window.removeClass(openClass);
+                 $window.addClass(closedClass);
                  $window.removeClass('chat-fullscreen');
                  clearMobileViewportOverrides();
                  $('body').css('overflow', '');
@@ -636,4 +652,3 @@ $(function () {
         }
     });
 });
-
