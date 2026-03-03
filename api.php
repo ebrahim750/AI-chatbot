@@ -3,7 +3,7 @@
 # configs
 $webhookTestUrl = 'https://ai-backend.simplyask.live/webhook-test/facd547d-5e9b-4f70-9970-ac17be2823b1';
 $webhookProdUrl = 'https://ai-backend.simplyask.live/webhook/facd547d-5e9b-4f70-9970-ac17be2823b1';
-$prod = false;
+$prod = true;
 
 $logFile = __DIR__ . '/error.log';
 
