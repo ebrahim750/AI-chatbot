@@ -7,6 +7,15 @@ $prod = true;
 
 $logFile = __DIR__ . '/error.log';
 
+
+// Get current domain
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+$allowedOrigin = $scheme . '://' . $host;
+
+
 function logError($message, $details = []) {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
@@ -19,7 +28,7 @@ function logError($message, $details = []) {
 }
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
@@ -51,12 +60,41 @@ if (!isset($input['message']) || !isset($input['chat_id']) || empty(trim($input[
 
 $message = trim($input['message']);
 $chat_id = $input['chat_id'];
+$origin = trim($_SERVER['HTTP_ORIGIN'] ?? '');
+$referer = trim($_SERVER['HTTP_REFERER'] ?? '');
+
+// Verify origin and referer are present and from same domain
+if (empty($origin) || empty($referer)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Access denied']);
+    exit;
+}
+
+$getDomain = function ($url) {
+    if (empty($url)) return '';
+    if (!preg_match('#^https?://#i', $url)) $url = 'https://' . $url;
+    $parsed = parse_url($url);
+    return strtolower($parsed['host'] ?? '');
+};
+
+$originDomain = $getDomain($origin);
+$refererDomain = $getDomain($referer);
+
+if ($originDomain !== $refererDomain || empty($originDomain)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Access denied']);
+    exit;
+}
 
 $webhookUrl = $prod ? $webhookProdUrl : $webhookTestUrl;
 
 $ch = curl_init($webhookUrl);
 curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['message' => $message, 'chat_id' => $chat_id]));
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'message' => $message,
+    'chat_id' => $chat_id,
+    'origin' => $origin
+]));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
