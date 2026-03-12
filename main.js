@@ -70,7 +70,7 @@ $(function () {
     
     // Initialize visibility - hide skeleton, show actual content, show FAB
     $('#chat-skeleton').hide();
-    $('#chat-content').removeClass('hidden').show();
+    $('#chat-content').removeClass('simplyit-chatbot-hidden').show();
     $fab.css('visibility', 'visible');
     if (FAB_PULSE_ENABLED) {
         $fab.addClass('chat-fab-pulse');
@@ -132,7 +132,7 @@ $(function () {
         // Avatar for assistant messages
         $(document).on('DOMNodeInserted', function(e) {
             const $el = $(e.target);
-            $el.find('.bg-indigo-600').css('background-color', color);
+        $el.find('.simplyit-chatbot-bg-indigo-600').css('background-color', color);
         });
     }
     
@@ -171,7 +171,7 @@ $(function () {
                   windowEl.style.setProperty('transition-duration', '0ms');
               }
               // On mobile, always full screen when open
-              if ($window.hasClass('opacity-100')) {
+              if ($window.hasClass('simplyit-chatbot-opacity-100')) {
                   $window.css({
                       left: '0',
                       right: '0',
@@ -211,7 +211,7 @@ $(function () {
           
            // Mobile: manage expanded class based on window state
            if (isMobile) {
-               if ($window.hasClass('opacity-100')) {
+               if ($window.hasClass('simplyit-chatbot-opacity-100')) {
                    // Open: ensure expanded
                    if (!$window.hasClass('chat-expanded')) {
                        $window.addClass('chat-expanded');
@@ -226,7 +226,7 @@ $(function () {
            
            // Handle FAB visibility on mobile
            if (isMobile) {
-               if ($window.hasClass('opacity-100')) {
+               if ($window.hasClass('simplyit-chatbot-opacity-100')) {
                    $fab.addClass('fab-mobile-hidden');
                } else {
                    $fab.removeClass('fab-mobile-hidden');
@@ -332,9 +332,13 @@ $(function () {
 
      function toggleWindow(show) {
          const isMobile = window.innerWidth < 640;
-         const openClass = isMobile ? 'opacity-100 pointer-events-auto' : 'opacity-100 scale-100 pointer-events-auto';
-         const closedClass = isMobile ? 'opacity-0 pointer-events-none' : 'opacity-0 scale-95 pointer-events-none';
-         $window.removeClass('scale-95 scale-100');
+         const openClass = isMobile
+             ? 'simplyit-chatbot-opacity-100 simplyit-chatbot-pointer-events-auto'
+             : 'simplyit-chatbot-opacity-100 simplyit-chatbot-scale-100 simplyit-chatbot-pointer-events-auto';
+         const closedClass = isMobile
+             ? 'simplyit-chatbot-opacity-0 simplyit-chatbot-pointer-events-none'
+             : 'simplyit-chatbot-opacity-0 simplyit-chatbot-scale-95 simplyit-chatbot-pointer-events-none';
+         $window.removeClass('simplyit-chatbot-scale-95 simplyit-chatbot-scale-100');
          
          if (show === true) {
              $window.removeClass(closedClass);
@@ -353,7 +357,7 @@ $(function () {
              clearMobileViewportOverrides();
              $('body').css('overflow', '');
          } else {
-             if ($window.hasClass('opacity-0')) {
+             if ($window.hasClass('simplyit-chatbot-opacity-0')) {
                  $window.removeClass(closedClass);
                  $window.addClass(openClass);
                  if (isMobile) {
@@ -392,20 +396,20 @@ $(function () {
         const { text, role } = message;
         const isUser = role === 'user';
         const avatar = isUser
-            ? '<img src="img/user.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">'
-            : '<img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">';
+            ? '<img src="img/user.jpg" class="simplyit-chatbot-mt-1 simplyit-chatbot-h-7 simplyit-chatbot-w-7 simplyit-chatbot-flex-shrink-0 simplyit-chatbot-rounded-full simplyit-chatbot-ring-2 simplyit-chatbot-ring-white simplyit-chatbot-object-cover simplyit-chatbot-bg-white">'
+            : '<img src="img/bot.jpg" class="simplyit-chatbot-mt-1 simplyit-chatbot-h-7 simplyit-chatbot-w-7 simplyit-chatbot-flex-shrink-0 simplyit-chatbot-rounded-full simplyit-chatbot-ring-2 simplyit-chatbot-ring-white simplyit-chatbot-object-cover simplyit-chatbot-bg-white">';
 
         const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
         const bubbleClasses = isUser
-            ? 'rounded-br-sm'
-            : 'bg-white text-slate-800 ring-1 ring-slate-200 rounded-tl-sm';
+            ? 'simplyit-chatbot-rounded-br-sm'
+            : 'simplyit-chatbot-bg-white simplyit-chatbot-text-slate-800 simplyit-chatbot-ring-1 simplyit-chatbot-ring-slate-200 simplyit-chatbot-rounded-tl-sm';
 
-        const containerClasses = isUser ? 'justify-end' : '';
+        const containerClasses = isUser ? 'simplyit-chatbot-justify-end' : '';
         
         const content = `
-            <div class="mb-3 flex gap-2 ${containerClasses}">
+            <div class="simplyit-chatbot-mb-3 simplyit-chatbot-flex simplyit-chatbot-gap-2 ${containerClasses}">
                 ${isUser ? '' : avatar}
-                <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}"><span class="typing-text"></span></div>
+                <div class="simplyit-chatbot-max-w-[85%] simplyit-chatbot-rounded-2xl simplyit-chatbot-px-3 simplyit-chatbot-py-2 simplyit-chatbot-text-sm simplyit-chatbot-shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}"><span class="typing-text"></span></div>
                 ${isUser ? avatar : ''}
             </div>
         `;
@@ -453,7 +457,7 @@ $(function () {
 
     function markMessageFailed($messageEl, text) {
         $messageEl.find('.message-failed').remove();
-        const failedHtml = `<div class="message-failed mt-1 text-xs text-red-500 cursor-pointer hover:underline" style="text-align: right;">Message failed to send. <span class="text-red-600 font-medium">Click to resend</span></div>`;
+        const failedHtml = `<div class="message-failed simplyit-chatbot-mt-1 simplyit-chatbot-text-xs simplyit-chatbot-text-red-500 simplyit-chatbot-cursor-pointer hover:simplyit-chatbot-underline" style="text-align: right;">Message failed to send. <span class="simplyit-chatbot-text-red-600 simplyit-chatbot-font-medium">Click to resend</span></div>`;
         $messageEl.append(failedHtml);
         $messageEl.find('.message-failed').on('click', function(e) {
             e.stopPropagation();
@@ -466,24 +470,24 @@ $(function () {
         const { text, role } = message;
         const isUser = role === 'user';
         const avatar = isUser
-            ? '<img src="img/user.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">'
-            : '<img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">';
+            ? '<img src="img/user.jpg" class="simplyit-chatbot-mt-1 simplyit-chatbot-h-7 simplyit-chatbot-w-7 simplyit-chatbot-flex-shrink-0 simplyit-chatbot-rounded-full simplyit-chatbot-ring-2 simplyit-chatbot-ring-white simplyit-chatbot-object-cover simplyit-chatbot-bg-white">'
+            : '<img src="img/bot.jpg" class="simplyit-chatbot-mt-1 simplyit-chatbot-h-7 simplyit-chatbot-w-7 simplyit-chatbot-flex-shrink-0 simplyit-chatbot-rounded-full simplyit-chatbot-ring-2 simplyit-chatbot-ring-white simplyit-chatbot-object-cover simplyit-chatbot-bg-white">';
 
         const bubbleStyle = isUser ? `background-color: ${USER_BUBBLE_COLOR}; color: ${USER_TEXT_COLOR}` : '';
         const bubbleClasses = isUser
-            ? 'rounded-br-sm'
-            : 'bg-white text-slate-800 ring-1 ring-slate-200 rounded-tl-sm';
+            ? 'simplyit-chatbot-rounded-br-sm'
+            : 'simplyit-chatbot-bg-white simplyit-chatbot-text-slate-800 simplyit-chatbot-ring-1 simplyit-chatbot-ring-slate-200 simplyit-chatbot-rounded-tl-sm';
 
-        const containerClasses = isUser ? 'justify-end' : '';
+        const containerClasses = isUser ? 'simplyit-chatbot-justify-end' : '';
         
         // Format text based on role
         const displayText = isUser ? $('<div>').text(text).html().replace(/\n/g, '<br>') : formatMarkdown(text);
         
         const content = `
-            <div class="mb-3 flex flex-col ${containerClasses}">
-                <div class="flex gap-2 ${isUser ? 'justify-end' : ''}">
+            <div class="simplyit-chatbot-mb-3 simplyit-chatbot-flex simplyit-chatbot-flex-col ${containerClasses}">
+                <div class="simplyit-chatbot-flex simplyit-chatbot-gap-2 ${isUser ? 'simplyit-chatbot-justify-end' : ''}">
                     ${isUser ? '' : avatar}
-                    <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}">${displayText}</div>
+                    <div class="simplyit-chatbot-max-w-[85%] simplyit-chatbot-rounded-2xl simplyit-chatbot-px-3 simplyit-chatbot-py-2 simplyit-chatbot-text-sm simplyit-chatbot-shadow ${bubbleClasses} ${isUser ? '' : 'formatted-content'}" style="${bubbleStyle}">${displayText}</div>
                     ${isUser ? avatar : ''}
                 </div>
             </div>
@@ -497,9 +501,9 @@ $(function () {
     function showThinkingIndicator() {
         const dotStyle = `style="background-color: rgb(${typingDotRgb})"`;
         const content = `
-            <div class="mb-3 flex gap-2" id="thinking-indicator">
-                <img src="img/bot.jpg" class="mt-1 h-7 w-7 flex-shrink-0 rounded-full ring-2 ring-white object-cover bg-white">
-                <div class="max-w-[75%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-sm text-slate-800 ring-1 ring-slate-200 shadow">
+            <div class="simplyit-chatbot-mb-3 simplyit-chatbot-flex simplyit-chatbot-gap-2" id="thinking-indicator">
+                <img src="img/bot.jpg" class="simplyit-chatbot-mt-1 simplyit-chatbot-h-7 simplyit-chatbot-w-7 simplyit-chatbot-flex-shrink-0 simplyit-chatbot-rounded-full simplyit-chatbot-ring-2 simplyit-chatbot-ring-white simplyit-chatbot-object-cover simplyit-chatbot-bg-white">
+                <div class="simplyit-chatbot-max-w-[75%] simplyit-chatbot-rounded-2xl simplyit-chatbot-rounded-tl-sm simplyit-chatbot-bg-white simplyit-chatbot-px-3 simplyit-chatbot-py-2 simplyit-chatbot-text-sm simplyit-chatbot-text-slate-800 simplyit-chatbot-ring-1 simplyit-chatbot-ring-slate-200 simplyit-chatbot-shadow">
                     <span class="thinking"><span class="thinking-dot" ${dotStyle}></span><span class="thinking-dot" ${dotStyle}></span><span class="thinking-dot" ${dotStyle}></span></span>
                 </div>
             </div>
@@ -513,7 +517,7 @@ $(function () {
     }
 
     function scrollToLastUserMessage() {
-        const $lastUserMsg = $messages.find('.justify-end').last();
+        const $lastUserMsg = $messages.find('.simplyit-chatbot-justify-end').last();
         if ($lastUserMsg.length) {
             $lastUserMsg[0].scrollIntoView({ block: 'start', behavior: 'instant' });
         }
@@ -551,7 +555,7 @@ $(function () {
      // Snackbar error notification
      function showErrorSnackbar(message) {
          $errorMessage.text(message);
-         $snackbar.removeClass('hidden').addClass('show');
+         $snackbar.removeClass('simplyit-chatbot-hidden').addClass('show');
          
          // Auto-hide after 30 seconds
          setTimeout(() => {
@@ -562,7 +566,7 @@ $(function () {
      function hideErrorSnackbar() {
          $snackbar.removeClass('show');
          setTimeout(() => {
-             $snackbar.addClass('hidden');
+             $snackbar.addClass('simplyit-chatbot-hidden');
          }, 300);
      }
 
@@ -622,13 +626,13 @@ $(function () {
                 console.error('Chat API error:', { status, error, response: xhr.responseJSON });
                 showErrorSnackbar('An error occurred, please try again.');
                 
-                const $allMessages = $messages.children('.mb-3');
+                const $allMessages = $messages.children('.simplyit-chatbot-mb-3');
                 const $lastUserMsgContainer = $allMessages.last();
-                const $lastUserMsg = $lastUserMsgContainer.find('.justify-end').last();
+                const $lastUserMsg = $lastUserMsgContainer.find('.simplyit-chatbot-justify-end').last();
                 
                 if ($lastUserMsg.length) {
                     $lastUserMsgContainer.find('.message-failed').remove();
-                    const failedHtml = `<div class="message-failed mt-1 text-xs text-red-500 cursor-pointer hover:underline" style="text-align: right;">Message failed to send. <span class="text-red-600 font-medium">Click to resend</span></div>`;
+                    const failedHtml = `<div class="message-failed simplyit-chatbot-mt-1 simplyit-chatbot-text-xs simplyit-chatbot-text-red-500 simplyit-chatbot-cursor-pointer hover:simplyit-chatbot-underline" style="text-align: right;">Message failed to send. <span class="simplyit-chatbot-text-red-600 simplyit-chatbot-font-medium">Click to resend</span></div>`;
                     $lastUserMsgContainer.append(failedHtml);
                     $lastUserMsgContainer.find('.message-failed').on('click', function(e) {
                         e.stopPropagation();
