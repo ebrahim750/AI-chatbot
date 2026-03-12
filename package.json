@@ -4,7 +4,8 @@
   "scripts": {
     "build": "tailwindcss -i ./src/tailwind.css -o ./dist/tailwind.css --minify && powershell -ExecutionPolicy Bypass -File scripts/build-assets.ps1",
     "build:watch": "tailwindcss -i ./src/tailwind.css -o ./dist/tailwind.css --watch",
-    "build:assets": "powershell -ExecutionPolicy Bypass -File scripts/build-assets.ps1"
+    "build:assets": "powershell -ExecutionPolicy Bypass -File scripts/build-assets.ps1",
+    "build:plugin": "powershell -ExecutionPolicy Bypass -File scripts/build-plugin.ps1"
   },
   "devDependencies": {
     "@fontsource/inter": "^5.0.19",
