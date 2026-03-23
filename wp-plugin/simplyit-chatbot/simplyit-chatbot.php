@@ -197,6 +197,7 @@ function simplyit_chatbot_render() {
                     <p id="header-label" class="simplyit-chatbot-text-sm simplyit-chatbot-leading-tight simplyit-chatbot-opacity-90"></p>
                     <p id="header-subtitle" class="simplyit-chatbot-text-xs simplyit-chatbot-leading-tight simplyit-chatbot-opacity-70"></p>
                 </div>
+            </div>
             <!-- Error Snackbar (hidden by default) -->
             <div id="error-snackbar" class="simplyit-chatbot-hidden simplyit-chatbot-absolute simplyit-chatbot-top-full simplyit-chatbot-left-0 simplyit-chatbot-right-0 simplyit-chatbot-z-50 simplyit-chatbot-bg-red-500 simplyit-chatbot-text-white simplyit-chatbot-px-4 simplyit-chatbot-py-3 simplyit-chatbot-text-sm simplyit-chatbot-shadow-lg simplyit-chatbot-transition-all simplyit-chatbot-duration-300 simplyit-chatbot-transform -simplyit-chatbot-translate-y-full simplyit-chatbot-opacity-0">
                 <div class="simplyit-chatbot-flex simplyit-chatbot-items-center simplyit-chatbot-justify-between">
@@ -216,27 +217,26 @@ function simplyit_chatbot_render() {
                     </button>
                 </div>
             </div>
-        </div>
             <div class="simplyit-chatbot-flex simplyit-chatbot-items-center simplyit-chatbot-gap-1">
-                <button id="chat-clear" class="tooltip simplyit-chatbot-rounded-lg simplyit-chatbot-p-2 hover:simplyit-chatbot-bg-white/10 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-white/40" data-tooltip="Clear chat">
+                <button id="chat-clear" class="simplyit-chatbot-tooltip simplyit-chatbot-rounded-lg simplyit-chatbot-p-2 hover:simplyit-chatbot-bg-white/10 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-white/40" data-tooltip="Clear chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="simplyit-chatbot-h-5 simplyit-chatbot-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></svg>
                 </button>
-                <button id="chat-resize" class="tooltip simplyit-chatbot-rounded-lg simplyit-chatbot-p-2 hover:simplyit-chatbot-bg-white/10 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-white/40 simplyit-chatbot-hidden sm:simplyit-chatbot-block" data-tooltip="Make chat bigger">
+                <button id="chat-resize" class="simplyit-chatbot-tooltip simplyit-chatbot-rounded-lg simplyit-chatbot-p-2 hover:simplyit-chatbot-bg-white/10 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-white/40 simplyit-chatbot-hidden sm:simplyit-chatbot-block" data-tooltip="Make chat bigger">
                     <svg xmlns="http://www.w3.org/2000/svg" class="simplyit-chatbot-h-5 simplyit-chatbot-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
                 </button>
-                <button id="chat-close" class="tooltip simplyit-chatbot-rounded-lg simplyit-chatbot-p-2 hover:simplyit-chatbot-bg-white/10 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-white/40" data-tooltip="Close chat">
+                <button id="chat-close" class="simplyit-chatbot-tooltip simplyit-chatbot-rounded-lg simplyit-chatbot-p-2 hover:simplyit-chatbot-bg-white/10 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-white/40" data-tooltip="Close chat">
                     <svg xmlns="http://www.w3.org/2000/svg" class="simplyit-chatbot-h-5 simplyit-chatbot-w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
             </div>
         </div>
 
         <!-- Messages -->
-        <div id="chat-messages" class="nice-scrollbar simplyit-chatbot-h-[28rem] simplyit-chatbot-overflow-y-auto simplyit-chatbot-bg-slate-50 simplyit-chatbot-px-3 simplyit-chatbot-py-3"></div>
+        <div id="chat-messages" class="simplyit-chatbot-nice-scrollbar simplyit-chatbot-h-[28rem] simplyit-chatbot-overflow-y-auto simplyit-chatbot-bg-slate-50 simplyit-chatbot-px-3 simplyit-chatbot-py-3"></div>
 
         <!-- Composer -->
         <form id="chat-form" class="simplyit-chatbot-flex simplyit-chatbot-items-end simplyit-chatbot-gap-2 simplyit-chatbot-border-t simplyit-chatbot-border-slate-200 simplyit-chatbot-bg-white simplyit-chatbot-px-3 simplyit-chatbot-py-3">
             <div class="simplyit-chatbot-relative simplyit-chatbot-flex-1 simplyit-chatbot-self-center">
-                <textarea id="chat-input" rows="1" placeholder="Type a message..." class="nice-scrollbar simplyit-chatbot-max-h-32 simplyit-chatbot-w-full simplyit-chatbot-resize-none simplyit-chatbot-rounded-xl simplyit-chatbot-border simplyit-chatbot-border-slate-200 simplyit-chatbot-bg-white simplyit-chatbot-px-3 simplyit-chatbot-py-2 simplyit-chatbot-text-sm simplyit-chatbot-text-slate-800 simplyit-chatbot-placeholder-slate-400 simplyit-chatbot-shadow-sm simplyit-chatbot-outline-none simplyit-chatbot-transition focus:simplyit-chatbot-border-indigo-400 focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-indigo-200"></textarea>
+                <textarea id="chat-input" rows="1" placeholder="Type a message..." class="simplyit-chatbot-nice-scrollbar simplyit-chatbot-max-h-32 simplyit-chatbot-w-full simplyit-chatbot-resize-none simplyit-chatbot-rounded-xl simplyit-chatbot-border simplyit-chatbot-border-slate-200 simplyit-chatbot-bg-white simplyit-chatbot-px-3 simplyit-chatbot-py-2 simplyit-chatbot-text-sm simplyit-chatbot-text-slate-800 simplyit-chatbot-placeholder-slate-400 simplyit-chatbot-shadow-sm simplyit-chatbot-outline-none simplyit-chatbot-transition focus:simplyit-chatbot-border-indigo-400 focus:simplyit-chatbot-ring-2 focus:simplyit-chatbot-ring-indigo-200"></textarea>
                 <div class="simplyit-chatbot-pointer-events-none simplyit-chatbot-absolute simplyit-chatbot-bottom-2 simplyit-chatbot-right-3 simplyit-chatbot-text-xs simplyit-chatbot-text-slate-400 simplyit-chatbot-hidden sm:simplyit-chatbot-block">Press Enter &#x21B5;</div>
             </div>
             <button id="chat-send" type="submit" class="simplyit-chatbot-inline-flex simplyit-chatbot-self-start simplyit-chatbot-items-center simplyit-chatbot-justify-center simplyit-chatbot-rounded-xl simplyit-chatbot-bg-indigo-600 simplyit-chatbot-px-3 simplyit-chatbot-py-2 simplyit-chatbot-text-sm simplyit-chatbot-font-medium simplyit-chatbot-text-white simplyit-chatbot-shadow-sm hover:simplyit-chatbot-bg-indigo-500 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-4 focus:simplyit-chatbot-ring-indigo-200 disabled:simplyit-chatbot-cursor-not-allowed disabled:simplyit-chatbot-opacity-50 disabled:hover:simplyit-chatbot-bg-indigo-600 simplyit-chatbot-mt-0.5">
