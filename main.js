@@ -18,6 +18,7 @@
     const WELCOME_MESSAGE = 'Hi! I am SAM, how may I be of assistance?\n Have any questions about SimplyIT?\n Or would you like to book a free audit for your business?';
     const CHAT_STORAGE_KEY = 'chatbot_history';
     const CHAT_ID_STORAGE_KEY = 'chatId';
+    const IOS_CHAT_VIEWPORT_CONTENT = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
 
     const template = `
         <div id="simplyit-chatbot">
@@ -185,6 +186,15 @@
         return result;
     }
 
+    function isIosWebKit() {
+        const userAgent = window.navigator.userAgent || '';
+        const platform = window.navigator.platform || '';
+        const maxTouchPoints = Number(window.navigator.maxTouchPoints || 0);
+        const isIosDevice = /iPad|iPhone|iPod/.test(userAgent);
+        const isIpadDesktopMode = platform === 'MacIntel' && maxTouchPoints > 1;
+        return (isIosDevice || isIpadDesktopMode) && /AppleWebKit/i.test(userAgent);
+    }
+
     async function loadStylesheetText(url) {
         const response = await fetch(url, { credentials: 'same-origin' });
         if (!response.ok) {
@@ -221,8 +231,15 @@
             imageBase,
             typingDotRgb: '99, 102, 241',
             isWaitingForResponse: false,
+            isIosWebKit: isIosWebKit(),
             chatHistory: [],
             chatId: localStorage.getItem(CHAT_ID_STORAGE_KEY) || generateChatId(),
+            viewport: {
+                meta: null,
+                originalContent: null,
+                created: false,
+                locked: false,
+            },
         };
         localStorage.setItem(CHAT_ID_STORAGE_KEY, state.chatId);
         return state;
@@ -361,6 +378,47 @@
 
     function focusComposer(state) {
         state.input.focus({ preventScroll: true });
+    }
+
+    function lockIosViewport(state) {
+        if (!state.isIosWebKit || state.viewport.locked) {
+            return;
+        }
+
+        let meta = document.querySelector('meta[name="viewport"]');
+        let created = false;
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.setAttribute('name', 'viewport');
+            meta.dataset.simplyitChatbotOwned = 'true';
+            document.head.appendChild(meta);
+            created = true;
+        }
+
+        state.viewport.meta = meta;
+        state.viewport.originalContent = meta.getAttribute('content');
+        state.viewport.created = created;
+        meta.setAttribute('content', IOS_CHAT_VIEWPORT_CONTENT);
+        state.viewport.locked = true;
+    }
+
+    function restoreIosViewport(state) {
+        if (!state.viewport.locked || !state.viewport.meta) {
+            return;
+        }
+
+        if (state.viewport.created) {
+            state.viewport.meta.remove();
+        } else if (state.viewport.originalContent === null) {
+            state.viewport.meta.removeAttribute('content');
+        } else {
+            state.viewport.meta.setAttribute('content', state.viewport.originalContent);
+        }
+
+        state.viewport.meta = null;
+        state.viewport.originalContent = null;
+        state.viewport.created = false;
+        state.viewport.locked = false;
     }
 
     function saveChatHistory(state) {
@@ -592,16 +650,23 @@
             if (isMobile) {
                 state.windowEl.classList.add('chat-fullscreen');
                 document.body.style.overflow = 'hidden';
-                window.setTimeout(() => handleKeyboard(state), 0);
+                lockIosViewport(state);
             }
-            focusComposer(state);
         } else {
             state.windowEl.classList.remove('chat-fullscreen');
             clearMobileViewportOverrides(state);
             document.body.style.overflow = '';
+            restoreIosViewport(state);
         }
 
         updatePositioning(state);
+
+        if (shouldShow) {
+            window.setTimeout(() => {
+                focusComposer(state);
+                handleKeyboard(state);
+            }, 0);
+        }
     }
 
     function toggleResize(state) {
@@ -710,6 +775,7 @@
         });
 
         window.addEventListener('resize', () => updatePositioning(state));
+        window.addEventListener('pagehide', () => restoreIosViewport(state));
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => handleKeyboard(state));
             window.visualViewport.addEventListener('scroll', () => handleKeyboard(state));
