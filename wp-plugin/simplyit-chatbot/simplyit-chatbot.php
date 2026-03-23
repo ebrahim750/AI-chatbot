@@ -2,7 +2,7 @@
 /**
  * Plugin Name: SimplyIT Chatbot
  * Description: Floating AI chatbot widget for SimplyIT.
- * Version: 0.2.1
+ * Version: 0.2.2
  * Author: SimplyIT
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SIMPLYIT_CHATBOT_VERSION', '0.2.1');
+define('SIMPLYIT_CHATBOT_VERSION', '0.2.2');
 define('SIMPLYIT_CHATBOT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('SIMPLYIT_CHATBOT_PLUGIN_PATH', plugin_dir_path(__FILE__));
 

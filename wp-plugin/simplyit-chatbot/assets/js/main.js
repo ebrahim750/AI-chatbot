@@ -282,6 +282,8 @@
     }
 
     function clearMobileViewportOverrides(state) {
+        state.windowEl.style.removeProperty('left');
+        state.windowEl.style.removeProperty('width');
         state.windowEl.style.removeProperty('top');
         state.windowEl.style.removeProperty('bottom');
         state.windowEl.style.removeProperty('height');
@@ -292,10 +294,15 @@
             return;
         }
 
+        const viewportWidth = Math.max(0, Math.round(window.visualViewport.width || window.innerWidth));
         const viewportHeight = Math.max(0, Math.round(window.visualViewport.height));
+        const viewportLeft = Math.max(0, Math.round(window.visualViewport.offsetLeft || 0));
         const viewportTop = Math.max(0, Math.round(window.visualViewport.offsetTop || 0));
+        state.windowEl.style.setProperty('left', `${viewportLeft}px`, 'important');
+        state.windowEl.style.setProperty('width', `${viewportWidth}px`, 'important');
         state.windowEl.style.setProperty('top', `${viewportTop}px`, 'important');
         state.windowEl.style.setProperty('height', `${viewportHeight}px`, 'important');
+        state.windowEl.style.setProperty('right', 'auto', 'important');
         state.windowEl.style.setProperty('bottom', 'auto', 'important');
     }
 
