@@ -1,15 +1,142 @@
 #simplyit-chatbot {
-  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+/* Recreate the element defaults the widget relies on without leaking styles globally. */
+:where(#simplyit-chatbot, #simplyit-chatbot *, #simplyit-chatbot *::before, #simplyit-chatbot *::after) {
+  box-sizing: border-box;
+}
+
+:where(
+  #simplyit-chatbot button,
+  #simplyit-chatbot input,
+  #simplyit-chatbot textarea,
+  #simplyit-chatbot select,
+  #simplyit-chatbot optgroup
+) {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+:where(#simplyit-chatbot button, #simplyit-chatbot input, #simplyit-chatbot textarea) {
+  margin: 0;
+  text-transform: none;
+}
+
+:where(#simplyit-chatbot button, #simplyit-chatbot [role="button"]) {
+  cursor: pointer;
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+}
+
+:where(#simplyit-chatbot button:disabled, #simplyit-chatbot [role="button"]:disabled) {
+  cursor: default;
+}
+
+:where(
+  #simplyit-chatbot p,
+  #simplyit-chatbot h1,
+  #simplyit-chatbot h2,
+  #simplyit-chatbot h3,
+  #simplyit-chatbot h4,
+  #simplyit-chatbot h5,
+  #simplyit-chatbot h6
+) {
+  margin: 0;
+}
+
+:where(#simplyit-chatbot ul, #simplyit-chatbot ol) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:where(#simplyit-chatbot img, #simplyit-chatbot svg) {
+  display: block;
+  vertical-align: middle;
+}
+
+#simplyit-chatbot svg {
+  overflow: hidden;
+}
+
+#chat-window {
+  overflow: hidden;
+}
+
+#chat-form {
+  margin: 0;
+}
+
+#chat-input {
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+}
+
+#chat-input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+#chat-fab,
+#chat-send,
+#chat-clear,
+#chat-resize,
+#chat-close,
+#error-dismiss {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Theme reset styles can still target native buttons, so harden the header icon controls directly. */
+#simplyit-chatbot #chat-clear,
+#simplyit-chatbot #chat-resize,
+#simplyit-chatbot #chat-close,
+#simplyit-chatbot #error-dismiss {
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  color: inherit;
+  cursor: pointer !important;
+}
+
+#simplyit-chatbot #chat-clear:hover,
+#simplyit-chatbot #chat-resize:hover,
+#simplyit-chatbot #chat-close:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+#simplyit-chatbot #chat-clear:focus-visible,
+#simplyit-chatbot #chat-resize:focus-visible,
+#simplyit-chatbot #chat-close:focus-visible,
+#simplyit-chatbot #error-dismiss:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+#chat-input {
+  resize: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* Simple scrollbar styling for message area */
-#simplyit-chatbot .nice-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
-#simplyit-chatbot .nice-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(100, 116, 139, 0.5); border-radius: 9999px; }
-#simplyit-chatbot .nice-scrollbar::-webkit-scrollbar-track { background-color: transparent; }
+#simplyit-chatbot .simplyit-chatbot-nice-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+#simplyit-chatbot .simplyit-chatbot-nice-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(100, 116, 139, 0.5); border-radius: 9999px; }
+#simplyit-chatbot .simplyit-chatbot-nice-scrollbar::-webkit-scrollbar-track { background-color: transparent; }
 
 /* CSS Tooltip */
-#simplyit-chatbot .tooltip { position: relative; }
-#simplyit-chatbot .tooltip::after {
+#simplyit-chatbot .simplyit-chatbot-tooltip { position: relative; }
+#simplyit-chatbot .simplyit-chatbot-tooltip::after {
   content: attr(data-tooltip);
   position: absolute;
   bottom: 100%;
@@ -27,7 +154,7 @@
   margin-bottom: 6px;
   z-index: 50;
 }
-#simplyit-chatbot .tooltip:hover::after { opacity: 1; visibility: visible; }
+#simplyit-chatbot .simplyit-chatbot-tooltip:hover::after { opacity: 1; visibility: visible; }
 
 /* Thinking indicator dots */
 #simplyit-chatbot .thinking {
