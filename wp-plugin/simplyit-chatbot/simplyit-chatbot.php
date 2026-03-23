@@ -2,7 +2,7 @@
 /**
  * Plugin Name: SimplyIT Chatbot
  * Description: Floating AI chatbot widget for SimplyIT.
- * Version: 0.1.1
+ * Version: 0.1.3
  * Author: SimplyIT
  */
 
@@ -10,8 +10,52 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SIMPLYIT_CHATBOT_VERSION', '0.1.1');
+define('SIMPLYIT_CHATBOT_VERSION', '0.1.3');
 define('SIMPLYIT_CHATBOT_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('SIMPLYIT_CHATBOT_PLUGIN_PATH', plugin_dir_path(__FILE__));
+
+function simplyit_chatbot_log_path() {
+    $log_dir = SIMPLYIT_CHATBOT_PLUGIN_PATH . 'logs/';
+
+    if (!is_dir($log_dir)) {
+        wp_mkdir_p($log_dir);
+    }
+
+    if (!is_dir($log_dir) || !is_writable($log_dir)) {
+        return false;
+    }
+
+    $index_file = $log_dir . 'index.php';
+    if (!file_exists($index_file)) {
+        file_put_contents($index_file, "<?php\n");
+    }
+
+    $htaccess_file = $log_dir . '.htaccess';
+    if (!file_exists($htaccess_file)) {
+        file_put_contents($htaccess_file, "Deny from all\n");
+    }
+
+    return $log_dir . 'chatbot-' . gmdate('Y-m-d') . '.log';
+}
+
+function simplyit_chatbot_log($event, array $context = []) {
+    $log_path = simplyit_chatbot_log_path();
+    if (!$log_path) {
+        return;
+    }
+
+    $entry = [
+        'timestamp' => gmdate('c'),
+        'event' => $event,
+        'context' => $context,
+    ];
+
+    file_put_contents(
+        $log_path,
+        wp_json_encode($entry, JSON_UNESCAPED_SLASHES) . PHP_EOL,
+        FILE_APPEND | LOCK_EX
+    );
+}
 
 function simplyit_chatbot_enqueue_assets() {
     if (is_admin()) {
@@ -20,7 +64,7 @@ function simplyit_chatbot_enqueue_assets() {
 
     wp_enqueue_style(
         'simplyit-chatbot-inter',
-        SIMPLYIT_CHATBOT_PLUGIN_URL . 'assets/fonts/inter.css',
+        'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
         [],
         SIMPLYIT_CHATBOT_VERSION
     );
@@ -210,6 +254,9 @@ add_action('wp_footer', 'simplyit_chatbot_render');
 function simplyit_chatbot_handle_message() {
     $nonce_ok = check_ajax_referer('simplyit_chatbot_nonce', 'nonce', false);
     if (!$nonce_ok) {
+        simplyit_chatbot_log('invalid_nonce', [
+            'remote_addr' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+        ]);
         wp_send_json_error(['error' => 'Invalid nonce'], 403);
     }
 
@@ -231,6 +278,14 @@ function simplyit_chatbot_handle_message() {
         'origin' => home_url(),
     ];
 
+    simplyit_chatbot_log('request_started', [
+        'webhook_url' => $webhookUrl,
+        'origin' => $payload['origin'],
+        'chat_id' => $chat_id,
+        'message_length' => strlen($message),
+        'message_preview' => function_exists('mb_substr') ? mb_substr($message, 0, 200) : substr($message, 0, 200),
+    ]);
+
     $response = wp_remote_post($webhookUrl, [
         'headers' => [
             'Content-Type' => 'application/json',
@@ -240,6 +295,14 @@ function simplyit_chatbot_handle_message() {
     ]);
 
     if (is_wp_error($response)) {
+        simplyit_chatbot_log('request_failed', [
+            'webhook_url' => $webhookUrl,
+            'origin' => $payload['origin'],
+            'chat_id' => $chat_id,
+            'error_code' => $response->get_error_code(),
+            'error_message' => $response->get_error_message(),
+            'error_data' => $response->get_error_data(),
+        ]);
         wp_send_json_error(['error' => 'Failed to connect to service'], 500);
     }
 
@@ -248,6 +311,13 @@ function simplyit_chatbot_handle_message() {
 
     if ($http_code < 200 || $http_code >= 300) {
         $status = $http_code ?: 500;
+        simplyit_chatbot_log('request_bad_status', [
+            'webhook_url' => $webhookUrl,
+            'origin' => $payload['origin'],
+            'chat_id' => $chat_id,
+            'http_code' => $http_code,
+            'response_body' => function_exists('mb_substr') ? mb_substr($body, 0, 2000) : substr($body, 0, 2000),
+        ]);
         wp_send_json_error(['error' => 'Service temporarily unavailable'], $status);
     }
 
@@ -257,6 +327,13 @@ function simplyit_chatbot_handle_message() {
         if (is_array($response_data) && isset($response_data[0]['output'])) {
             wp_send_json(['response' => $response_data[0]['output']]);
         }
+        simplyit_chatbot_log('request_invalid_response', [
+            'webhook_url' => $webhookUrl,
+            'origin' => $payload['origin'],
+            'chat_id' => $chat_id,
+            'http_code' => $http_code,
+            'response_body' => function_exists('mb_substr') ? mb_substr($body, 0, 2000) : substr($body, 0, 2000),
+        ]);
         wp_send_json_error(['error' => 'Invalid response from service'], 500);
     }
 

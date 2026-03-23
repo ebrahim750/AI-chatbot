@@ -7,6 +7,8 @@ def should_include(path: Path) -> bool:
     name = path.name
     if name in {".DS_Store", "Thumbs.db"}:
         return False
+    if "assets" in path.parts and "fonts" in path.parts:
+        return False
     return True
 
 
