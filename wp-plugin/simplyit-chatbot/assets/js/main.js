@@ -1,4 +1,4 @@
-$(function () {
+jQuery(function ($) {
     // Chat widget position configuration: 'left' or 'right'
     const CHAT_POSITION = 'right';
     

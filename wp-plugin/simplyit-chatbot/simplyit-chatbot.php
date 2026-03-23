@@ -1,8 +1,8 @@
-﻿<?php
+<?php
 /**
  * Plugin Name: SimplyIT Chatbot
  * Description: Floating AI chatbot widget for SimplyIT.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: SimplyIT
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SIMPLYIT_CHATBOT_VERSION', '0.1.0');
+define('SIMPLYIT_CHATBOT_VERSION', '0.1.1');
 define('SIMPLYIT_CHATBOT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 function simplyit_chatbot_enqueue_assets() {
@@ -78,7 +78,7 @@ function simplyit_chatbot_render() {
     $assets_url = esc_url(SIMPLYIT_CHATBOT_PLUGIN_URL . 'assets');
 
     echo <<<HTML
-<div id="simplyit-chatbot" data-assets-url="{$assets_url}" class="simplyit-chatbot-bg-slate-50 simplyit-chatbot-min-h-screen">
+<div id="simplyit-chatbot" data-assets-url="{$assets_url}">
     <!-- Floating Chat Button (hidden initially via inline style to prevent flash) -->
     <button id="chat-fab" type="button" style="visibility: hidden;" class="simplyit-chatbot-fixed simplyit-chatbot-bottom-6 simplyit-chatbot-right-6 simplyit-chatbot-z-40 simplyit-chatbot-inline-flex simplyit-chatbot-items-center simplyit-chatbot-gap-2 simplyit-chatbot-rounded-full simplyit-chatbot-bg-indigo-600 simplyit-chatbot-px-4 simplyit-chatbot-py-3 simplyit-chatbot-text-white simplyit-chatbot-shadow-lg simplyit-chatbot-shadow-indigo-600/30 hover:simplyit-chatbot-bg-indigo-500 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-4 focus:simplyit-chatbot-ring-indigo-300">
         <!-- Chat icon (bigger) -->
@@ -264,5 +264,3 @@ function simplyit_chatbot_handle_message() {
 }
 add_action('wp_ajax_simplyit_chatbot_message', 'simplyit_chatbot_handle_message');
 add_action('wp_ajax_nopriv_simplyit_chatbot_message', 'simplyit_chatbot_handle_message');
-
-?>
