@@ -146,28 +146,58 @@ function simplyit_chatbot_handle_message() {
         'message_preview' => function_exists('mb_substr') ? mb_substr($message, 0, 200) : substr($message, 0, 200),
     ]);
 
-    $response = wp_remote_post($webhookUrl, [
-        'headers' => [
-            'Content-Type' => 'application/json',
+    if (!function_exists('curl_init')) {
+        simplyit_chatbot_log('curl_unavailable', [
+            'webhook_url' => $webhookUrl,
+            'origin' => $payload['origin'],
+            'chat_id' => $chat_id,
+        ]);
+        wp_send_json_error(['error' => 'cURL is required to connect to the chat service'], 500);
+    }
+
+    $request_body = wp_json_encode($payload);
+    $curl = curl_init($webhookUrl);
+
+    if ($curl === false) {
+        simplyit_chatbot_log('request_transport_init_failed', [
+            'webhook_url' => $webhookUrl,
+            'origin' => $payload['origin'],
+            'chat_id' => $chat_id,
+        ]);
+        wp_send_json_error(['error' => 'Failed to initialize the chat service connection'], 500);
+    }
+
+    curl_setopt_array($curl, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $request_body,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
         ],
-        'body' => wp_json_encode($payload),
-        'timeout' => 10,
     ]);
 
-    if (is_wp_error($response)) {
+    $body = curl_exec($curl);
+    $http_code = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $curl_errno = curl_errno($curl);
+    $curl_error = curl_error($curl);
+    curl_close($curl);
+
+    if ($body === false) {
         simplyit_chatbot_log('request_failed', [
             'webhook_url' => $webhookUrl,
             'origin' => $payload['origin'],
             'chat_id' => $chat_id,
-            'error_code' => $response->get_error_code(),
-            'error_message' => $response->get_error_message(),
-            'error_data' => $response->get_error_data(),
+            'error_code' => $curl_errno,
+            'error_message' => $curl_error,
+            'error_data' => [
+                'connect_timeout' => 10,
+                'timeout' => 0,
+            ],
         ]);
         wp_send_json_error(['error' => 'Failed to connect to service'], 500);
     }
-
-    $http_code = (int) wp_remote_retrieve_response_code($response);
-    $body = wp_remote_retrieve_body($response);
 
     if ($http_code < 200 || $http_code >= 300) {
         $status = $http_code ?: 500;
