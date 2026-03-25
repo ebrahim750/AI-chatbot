@@ -19,10 +19,14 @@
     const CHAT_STORAGE_KEY = 'chatbot_history';
     const CHAT_ID_STORAGE_KEY = 'chatId';
     const IOS_CHAT_VIEWPORT_CONTENT = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+    /** 32-bit-safe stacking: panel below FAB when closed (so FAB is visible); panel above when open */
+    const Z_CHAT_PANEL_CLOSED = '2147483645';
+    const Z_FAB = '2147483646';
+    const Z_CHAT_PANEL_OPEN = '2147483647';
 
     const template = `
         <div id="simplyit-chatbot">
-            <button id="chat-fab" type="button" style="visibility: hidden;" class="simplyit-chatbot-fixed simplyit-chatbot-bottom-6 simplyit-chatbot-right-6 simplyit-chatbot-z-40 simplyit-chatbot-inline-flex simplyit-chatbot-items-center simplyit-chatbot-gap-2 simplyit-chatbot-rounded-full simplyit-chatbot-bg-indigo-600 simplyit-chatbot-px-4 simplyit-chatbot-py-3 simplyit-chatbot-text-white simplyit-chatbot-shadow-lg simplyit-chatbot-shadow-indigo-600/30 hover:simplyit-chatbot-bg-indigo-500 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-4 focus:simplyit-chatbot-ring-indigo-300">
+            <button id="chat-fab" type="button" style="visibility: hidden;" class="simplyit-chatbot-fixed simplyit-chatbot-bottom-6 simplyit-chatbot-right-6 simplyit-chatbot-inline-flex simplyit-chatbot-items-center simplyit-chatbot-gap-2 simplyit-chatbot-rounded-full simplyit-chatbot-bg-indigo-600 simplyit-chatbot-px-4 simplyit-chatbot-py-3 simplyit-chatbot-text-white simplyit-chatbot-shadow-lg simplyit-chatbot-shadow-indigo-600/30 hover:simplyit-chatbot-bg-indigo-500 focus:simplyit-chatbot-outline-none focus:simplyit-chatbot-ring-4 focus:simplyit-chatbot-ring-indigo-300">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="simplyit-chatbot-size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
                 </svg>
@@ -33,7 +37,7 @@
                 <span class="simplyit-chatbot-sr-only">Open chat</span>
             </button>
 
-            <div id="chat-window" class="simplyit-chatbot-fixed simplyit-chatbot-bottom-24 simplyit-chatbot-right-6 simplyit-chatbot-z-40 simplyit-chatbot-w-[92vw] simplyit-chatbot-max-w-lg simplyit-chatbot-rounded-2xl simplyit-chatbot-border simplyit-chatbot-border-slate-200 simplyit-chatbot-bg-white simplyit-chatbot-shadow-xl simplyit-chatbot-transition-all simplyit-chatbot-duration-300 simplyit-chatbot-opacity-0 simplyit-chatbot-scale-95 simplyit-chatbot-pointer-events-none" style="visibility: hidden;">
+            <div id="chat-window" class="simplyit-chatbot-fixed simplyit-chatbot-bottom-24 simplyit-chatbot-right-6 simplyit-chatbot-w-[92vw] simplyit-chatbot-max-w-lg simplyit-chatbot-rounded-2xl simplyit-chatbot-border simplyit-chatbot-border-slate-200 simplyit-chatbot-bg-white simplyit-chatbot-shadow-xl simplyit-chatbot-transition-all simplyit-chatbot-duration-300 simplyit-chatbot-opacity-0 simplyit-chatbot-scale-95 simplyit-chatbot-pointer-events-none" style="visibility: hidden;">
                 <div id="chat-skeleton" class="simplyit-chatbot-flex simplyit-chatbot-flex-col simplyit-chatbot-h-full">
                     <div class="simplyit-chatbot-flex simplyit-chatbot-items-center simplyit-chatbot-justify-between simplyit-chatbot-relative simplyit-chatbot-rounded-t-2xl simplyit-chatbot-bg-indigo-600 simplyit-chatbot-px-4 simplyit-chatbot-py-3">
                         <div class="simplyit-chatbot-flex simplyit-chatbot-items-center simplyit-chatbot-gap-3">
@@ -293,6 +297,8 @@
         state.content.style.display = 'flex';
         state.fab.style.visibility = 'visible';
         state.windowEl.style.visibility = 'visible';
+        state.fab.style.zIndex = Z_FAB;
+        state.windowEl.style.zIndex = Z_CHAT_PANEL_CLOSED;
         if (FAB_PULSE_ENABLED) {
             state.fab.classList.add('chat-fab-pulse');
         }
@@ -645,6 +651,7 @@
 
         state.windowEl.classList.remove('simplyit-chatbot-scale-95', 'simplyit-chatbot-scale-100', ...openClasses, ...closedClasses);
         state.windowEl.classList.add(...(shouldShow ? openClasses : closedClasses));
+        state.windowEl.style.zIndex = shouldShow ? Z_CHAT_PANEL_OPEN : Z_CHAT_PANEL_CLOSED;
 
         if (shouldShow) {
             if (isMobile) {
@@ -787,6 +794,9 @@
         if (!host) {
             return;
         }
+
+        host.style.position = 'relative';
+        host.style.zIndex = '2147483647';
 
         const assets = detectAssets(host);
         const [tailwindCss, chatbotCss] = await Promise.all([

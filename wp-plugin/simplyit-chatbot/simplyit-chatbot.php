@@ -106,7 +106,7 @@ function simplyit_chatbot_render() {
     $assets_url = esc_url(SIMPLYIT_CHATBOT_PLUGIN_URL . 'assets');
 
     echo <<<HTML
-<div id="simplyit-chatbot-host" data-assets-url="{$assets_url}"></div>
+<div id="simplyit-chatbot-host" data-assets-url="{$assets_url}" style="position:relative;z-index:2147483647"></div>
 HTML;
 }
 add_action('wp_footer', 'simplyit_chatbot_render');

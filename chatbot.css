@@ -273,7 +273,7 @@
     max-width: 100vw !important;
     border-radius: 0 !important;
     margin: 0 !important;
-    z-index: 99999 !important;
+    z-index: 2147483647 !important;
     pointer-events: auto !important;
   }
   #simplyit-chatbot .chat-fullscreen #chat-content {
