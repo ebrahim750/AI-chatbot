@@ -57,6 +57,20 @@ function simplyit_chatbot_log($event, array $context = []) {
     );
 }
 
+function simplyit_chatbot_preload_styles() {
+    if (is_admin()) {
+        return;
+    }
+
+    $base = SIMPLYIT_CHATBOT_PLUGIN_URL . 'assets/css/';
+    $tailwind_href = add_query_arg('ver', SIMPLYIT_CHATBOT_VERSION, $base . 'tailwind.css');
+    $chatbot_href = add_query_arg('ver', SIMPLYIT_CHATBOT_VERSION, $base . 'chatbot.css');
+
+    echo '<link rel="preload" as="style" href="' . esc_url($tailwind_href) . '">' . "\n";
+    echo '<link rel="preload" as="style" href="' . esc_url($chatbot_href) . '">' . "\n";
+}
+add_action('wp_head', 'simplyit_chatbot_preload_styles', 1);
+
 function simplyit_chatbot_enqueue_assets() {
     if (is_admin()) {
         return;
@@ -85,6 +99,12 @@ function simplyit_chatbot_enqueue_assets() {
         true
     );
 
+    global $wp_version;
+    if (version_compare($wp_version, '6.3', '>=')) {
+        wp_script_add_data('simplyit-chatbot-showdown', 'strategy', 'defer');
+        wp_script_add_data('simplyit-chatbot-main', 'strategy', 'defer');
+    }
+
     $config = [
         'ajaxUrl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('simplyit_chatbot_nonce'),
@@ -96,7 +116,7 @@ function simplyit_chatbot_enqueue_assets() {
         'before'
     );
 }
-add_action('wp_enqueue_scripts', 'simplyit_chatbot_enqueue_assets', 100);
+add_action('wp_enqueue_scripts', 'simplyit_chatbot_enqueue_assets', 20);
 
 function simplyit_chatbot_render() {
     if (is_admin()) {
@@ -104,9 +124,10 @@ function simplyit_chatbot_render() {
     }
 
     $assets_url = esc_url(SIMPLYIT_CHATBOT_PLUGIN_URL . 'assets');
+    $asset_version = esc_attr(SIMPLYIT_CHATBOT_VERSION);
 
     echo <<<HTML
-<div id="simplyit-chatbot-host" data-assets-url="{$assets_url}" style="position:relative;z-index:2147483647"></div>
+<div id="simplyit-chatbot-host" data-assets-url="{$assets_url}" data-link-css="1" data-asset-version="{$asset_version}" style="position:relative;z-index:2147483647"></div>
 HTML;
 }
 add_action('wp_footer', 'simplyit_chatbot_render');

@@ -145,11 +145,12 @@
     function detectAssets(host) {
         const assetsBase = host.dataset.assetsUrl || '';
         const isPluginAssets = /\/assets\/?$/.test(assetsBase);
+        const ver = host.dataset.assetVersion ? `?ver=${encodeURIComponent(host.dataset.assetVersion)}` : '';
         if (isPluginAssets) {
             return {
                 imageBase: `${assetsBase}/img`,
-                tailwindUrl: `${assetsBase}/css/tailwind.css`,
-                chatbotUrl: `${assetsBase}/css/chatbot.css`,
+                tailwindUrl: `${assetsBase}/css/tailwind.css${ver}`,
+                chatbotUrl: `${assetsBase}/css/chatbot.css${ver}`,
             };
         }
 
@@ -205,6 +206,47 @@
             throw new Error(`Failed to load stylesheet: ${url}`);
         }
         return response.text();
+    }
+
+    function shouldUseLinkCss(host) {
+        return Boolean(host.dataset.linkCss);
+    }
+
+    function awaitStylesheetLink(link) {
+        return new Promise((resolve, reject) => {
+            link.addEventListener('load', () => resolve(), { once: true });
+            link.addEventListener('error', () => {
+                reject(new Error(`Failed to load stylesheet: ${link.href}`));
+            }, { once: true });
+        });
+    }
+
+    async function createShadowRootWithLinkedStyles(host, tailwindUrl, chatbotUrl) {
+        const shadowRoot = host.shadowRoot || host.attachShadow({ mode: 'open' });
+        shadowRoot.replaceChildren();
+
+        const linkTailwind = document.createElement('link');
+        linkTailwind.rel = 'stylesheet';
+        linkTailwind.href = tailwindUrl;
+        const linkChatbot = document.createElement('link');
+        linkChatbot.rel = 'stylesheet';
+        linkChatbot.href = chatbotUrl;
+
+        const loadedTailwind = awaitStylesheetLink(linkTailwind);
+        const loadedChatbot = awaitStylesheetLink(linkChatbot);
+
+        shadowRoot.append(linkTailwind, linkChatbot);
+
+        const wrap = document.createElement('div');
+        wrap.innerHTML = template;
+        const widgetRoot = wrap.firstElementChild;
+        if (!widgetRoot) {
+            throw new Error('Chatbot template failed to parse');
+        }
+        shadowRoot.appendChild(widgetRoot);
+
+        await Promise.all([loadedTailwind, loadedChatbot]);
+        return shadowRoot;
     }
 
     function createShadowRoot(host, styles) {
@@ -799,11 +841,16 @@
         host.style.zIndex = '2147483647';
 
         const assets = detectAssets(host);
-        const [tailwindCss, chatbotCss] = await Promise.all([
-            loadStylesheetText(assets.tailwindUrl),
-            loadStylesheetText(assets.chatbotUrl),
-        ]);
-        const shadowRoot = createShadowRoot(host, `${tailwindCss}\n${chatbotCss}`);
+        let shadowRoot;
+        if (shouldUseLinkCss(host)) {
+            shadowRoot = await createShadowRootWithLinkedStyles(host, assets.tailwindUrl, assets.chatbotUrl);
+        } else {
+            const [tailwindCss, chatbotCss] = await Promise.all([
+                loadStylesheetText(assets.tailwindUrl),
+                loadStylesheetText(assets.chatbotUrl),
+            ]);
+            shadowRoot = createShadowRoot(host, `${tailwindCss}\n${chatbotCss}`);
+        }
         const state = createWidgetState(shadowRoot, assets.imageBase);
         const converter = createMarkdownConverter();
 
