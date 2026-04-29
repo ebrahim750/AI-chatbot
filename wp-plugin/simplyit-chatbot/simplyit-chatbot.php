@@ -156,7 +156,7 @@ function simplyit_chatbot_handle_message() {
     $payload = [
         'message' => $message,
         'chat_id' => $chat_id,
-        'origin' => home_url(),
+        'origin' => parse_url(home_url(), PHP_URL_HOST),
     ];
 
     simplyit_chatbot_log('request_started', [
