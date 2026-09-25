@@ -727,31 +727,58 @@
         }, 100);
     }
 
+    let currentNonce = null;
+
+    async function getFreshNonce(wpConfig) {
+        try {
+            const body = new URLSearchParams({ action: 'simplyit_chatbot_nonce' });
+            const res = await fetch(wpConfig.ajaxUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: body.toString(),
+            });
+            const data = await res.json();
+            return data?.nonce || null;
+        } catch (error) {
+            return null;
+        }
+    }
+
     async function postChatMessage(text, chatId) {
         const wpConfig = window.SimplyITChatbot || null;
         if (wpConfig?.ajaxUrl) {
-            const body = new URLSearchParams({
-                action: 'simplyit_chatbot_message',
-                nonce: wpConfig.nonce || '',
-                message: text,
-                chat_id: chatId,
-            });
-            const response = await fetch(wpConfig.ajaxUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                },
-                body: body.toString(),
-            });
-            return response.json();
+            for (let attempt = 0; attempt < 2; attempt++) {
+                if (!currentNonce) {
+                    currentNonce = (await getFreshNonce(wpConfig)) || wpConfig.nonce || '';
+                }
+                const body = new URLSearchParams({
+                    action: 'simplyit_chatbot_message',
+                    nonce: currentNonce,
+                    message: text,
+                    chat_id: chatId,
+                });
+                const response = await fetch(wpConfig.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    },
+                    body: body.toString(),
+                });
+                const data = await response.json();
+                if (data?.success === false && data?.data?.error === 'Invalid nonce') {
+                    currentNonce = null;
+                    continue;
+                }
+                return data;
+            }
+            return { response: null };
         }
 
         const response = await fetch('api.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: text, chat_id: chatId }),
         });
         return response.json();

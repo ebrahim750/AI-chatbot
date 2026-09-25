@@ -2,7 +2,7 @@
 /**
  * Plugin Name: SimplyIT Chatbot
  * Description: Floating AI chatbot widget for SimplyIT.
- * Version: 0.2.3
+ * Version: 0.2.4
  * Author: SimplyIT
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SIMPLYIT_CHATBOT_VERSION', '0.2.3');
+define('SIMPLYIT_CHATBOT_VERSION', '0.2.4');
 define('SIMPLYIT_CHATBOT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('SIMPLYIT_CHATBOT_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
@@ -131,6 +131,13 @@ function simplyit_chatbot_render() {
 HTML;
 }
 add_action('wp_footer', 'simplyit_chatbot_render');
+function simplyit_chatbot_get_nonce() {
+    nocache_headers();
+    wp_send_json(['nonce' => wp_create_nonce('simplyit_chatbot_nonce')]);
+}
+add_action('wp_ajax_simplyit_chatbot_nonce', 'simplyit_chatbot_get_nonce');
+add_action('wp_ajax_nopriv_simplyit_chatbot_nonce', 'simplyit_chatbot_get_nonce');
+
 
 function simplyit_chatbot_handle_message() {
     $nonce_ok = check_ajax_referer('simplyit_chatbot_nonce', 'nonce', false);
